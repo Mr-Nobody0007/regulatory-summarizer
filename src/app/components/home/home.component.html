@@ -1,0 +1,155 @@
+<div class="regulatory-assistant-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Regulatory AI document assistant</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Sparkle Icon - Always Visible -->
+      <div class="sparkle-container">
+        <div class="sparkle-icon">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+      </div>
+      
+      <!-- Input Method Selection Buttons -->
+      <div class="input-selection-tabs">
+        <div class="tab-buttons">
+          <button 
+            mat-stroked-button 
+            [class.active]="selectedInputMethod === 'search'"
+            (click)="selectInputMethod('search')">
+            <mat-icon>search</mat-icon>
+            Search documents
+          </button>
+          <button 
+            mat-stroked-button 
+            [class.active]="selectedInputMethod === 'url'"
+            (click)="selectInputMethod('url')">
+            <mat-icon>link</mat-icon>
+            URL input
+          </button>
+        </div>
+      </div>
+
+      <!-- Document Search UI -->
+      <div *ngIf="selectedInputMethod === 'search'" class="search-section">
+        <h3>Search for regulatory documents</h3>
+        
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
+          <input matInput [formControl]="searchControl" type="text" placeholder="Search for a document">
+          <mat-icon matPrefix>search</mat-icon>
+          <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
+          <button *ngIf="searchControl.value && !isLoading" matSuffix mat-icon-button aria-label="Clear" 
+            (click)="searchControl.setValue('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <!-- Selected Document Display -->
+        <div *ngIf="selectedDocument" class="selected-document">
+          <mat-card>
+            <mat-card-content>
+              <div class="document-info">
+                <h4>{{ selectedDocument.title }}</h4>
+                <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }}</p>
+                <p>Published: {{ selectedDocument.publicationDate }}</p>
+              </div>
+              <button mat-icon-button color="primary" (click)="clearDocumentSelection()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Search Results -->
+        <div *ngIf="!selectedDocument && searchResults.length > 0" class="search-results">
+          <mat-card>
+            <mat-card-content>
+              <mat-selection-list [multiple]="false">
+                <mat-list-option *ngFor="let result of searchResults" 
+                  (click)="selectDocument(result)">
+                  <div class="search-result-item">
+                    <h4 matLine>{{ result.title }}</h4>
+                    <p matLine>{{ result.documentType }} • {{ result.agencyName }}</p>
+                    <p matLine class="date">Published: {{ result.publicationDate }}</p>
+                  </div>
+                </mat-list-option>
+              </mat-selection-list>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- No Results Message -->
+        <div *ngIf="searchControl.value && noResults" class="no-results">
+          <p>No documents found matching your search. Please try different keywords.</p>
+        </div>
+      </div>
+
+      <!-- URL Input UI -->
+      <div *ngIf="selectedInputMethod === 'url'" class="url-section">
+        <h3>Enter URL for a regulatory document</h3>
+        
+        <form [formGroup]="urlForm" (ngSubmit)="onUrlSubmit()">
+          <mat-form-field appearance="outline" class="url-field">
+            <mat-label>Document URL</mat-label>
+            <input matInput formControlName="url" type="url" placeholder="https://www.federalregister.gov/documents/...">
+            <mat-icon matPrefix>link</mat-icon>
+            <button *ngIf="urlControl?.value" matSuffix mat-icon-button aria-label="Clear" 
+              (click)="urlControl?.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-error *ngIf="urlControl?.hasError('required')">
+              URL is required
+            </mat-error>
+            <mat-error *ngIf="urlControl?.hasError('pattern')">
+              Please enter a valid URL (must start with http:// or https://)
+            </mat-error>
+          </mat-form-field>
+          
+          <div class="url-actions">
+            <button 
+              type="submit" 
+              mat-raised-button 
+              color="primary"
+              [disabled]="urlForm.invalid || isUrlSubmitted">
+              Submit URL
+            </button>
+          </div>
+        </form>
+        
+        <!-- Submitted URL Display -->
+        <div *ngIf="isUrlSubmitted" class="submitted-url">
+          <mat-card>
+            <mat-card-content>
+              <div class="url-info">
+                <h4>Document URL</h4>
+                <p class="url-text">{{ urlControl?.value }}</p>
+              </div>
+              <button mat-icon-button color="primary" (click)="clearUrl()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Summarize Button -->
+      <div class="summarize-button-container" *ngIf="canSummarize">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="summarizeDocument()">
+          Summarize
+        </button>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="footer-info">
+        <p>I am able to summarize and guide you on regulatory documents from the 
+          <a href="https://www.ecfr.gov/" target="_blank">Code of Federal Regulations database (eCFR)</a>
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

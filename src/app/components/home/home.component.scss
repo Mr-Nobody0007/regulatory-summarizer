@@ -1,0 +1,331 @@
+.regulatory-assistant-container {
+  max-width: 1000px;
+  width: 90%;
+  margin: 40px auto;
+  
+  // Ensure the card doesn't get too small on large screens
+  @media (min-width: 1600px) {
+    max-width: 1200px;
+    font-size: 16px;
+  }
+  
+  mat-card {
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    
+    @media (min-width: 1600px) {
+      padding: 40px;
+    }
+  }
+
+  mat-card-header {
+    padding: 0;
+    margin-bottom: 24px;
+  }
+
+  mat-card-title {
+    margin: 0 !important;
+    font-size: 24px;
+    font-weight: 500;
+    
+    @media (min-width: 1600px) {
+      font-size: 28px;
+    }
+  }
+
+  .sparkle-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+    
+    .sparkle-icon {
+      background-color: #f0f4ff;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      
+      @media (min-width: 1600px) {
+        width: 120px;
+        height: 120px;
+      }
+      
+      mat-icon {
+        color: #004aa5;
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        
+        @media (min-width: 1600px) {
+          font-size: 44px;
+          width: 44px;
+          height: 44px;
+        }
+      }
+    }
+  }
+
+  .input-selection-tabs {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    
+    .tab-buttons {
+      display: flex;
+      gap: 16px;
+      
+      @media (min-width: 1600px) {
+        gap: 24px;
+      }
+      
+      button {
+        min-width: 180px;
+        padding: 8px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        
+        @media (min-width: 1600px) {
+          min-width: 200px;
+          padding: 12px 20px;
+          font-size: 16px;
+        }
+        
+        &.active {
+          background-color: #f0f4ff;
+          color: #004aa5;
+          border-color: #004aa5;
+        }
+        
+        mat-icon {
+          margin-right: 8px;
+          
+          @media (min-width: 1600px) {
+            margin-right: 12px;
+          }
+        }
+      }
+    }
+  }
+
+  .search-section, .url-section {
+    h3 {
+      margin-bottom: 16px;
+      font-weight: normal;
+      color: rgba(0, 0, 0, 0.87);
+      font-size: 16px;
+      
+      @media (min-width: 1600px) {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+    }
+  }
+
+  .search-field, .url-field {
+    width: 100%;
+    
+    ::ng-deep .mat-mdc-form-field-infix {
+      font-size: 14px;
+      
+      @media (min-width: 1600px) {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .selected-document, .submitted-url {
+    margin: 16px 0;
+    
+    mat-card {
+      padding: 16px;
+      border-left: 4px solid #004aa5;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        padding: 20px;
+      }
+    }
+    
+    mat-card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .document-info, .url-info {
+      flex: 1;
+      
+      h4 {
+        margin: 0 0 8px;
+        font-weight: 500;
+        font-size: 15px;
+        
+        @media (min-width: 1600px) {
+          font-size: 17px;
+          margin-bottom: 10px;
+        }
+      }
+      
+      p {
+        margin: 0 0 4px;
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        
+        @media (min-width: 1600px) {
+          font-size: 15px;
+          margin-bottom: 6px;
+        }
+      }
+      
+      .url-text {
+        word-break: break-all;
+      }
+    }
+  }
+
+  .search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 16px 0;
+    
+    @media (min-width: 1600px) {
+      max-height: 400px;
+    }
+    
+    mat-card {
+      padding: 0;
+      border-radius: 4px;
+    }
+    
+    mat-card-content {
+      padding: 0;
+      margin: 0;
+    }
+    
+    mat-selection-list {
+      padding: 0;
+    }
+    
+    .search-result-item {
+      padding: 12px 16px;
+      
+      @media (min-width: 1600px) {
+        padding: 16px 20px;
+      }
+      
+      h4 {
+        margin: 0 0 4px;
+        font-weight: 500;
+        font-size: 15px;
+        
+        @media (min-width: 1600px) {
+          font-size: 17px;
+          margin-bottom: 6px;
+        }
+      }
+      
+      p {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        
+        @media (min-width: 1600px) {
+          font-size: 15px;
+        }
+        
+        &.date {
+          margin-top: 4px;
+          font-size: 12px;
+          
+          @media (min-width: 1600px) {
+            margin-top: 6px;
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
+
+  .no-results {
+    margin: 24px 0;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    
+    @media (min-width: 1600px) {
+      font-size: 16px;
+      margin: 32px 0;
+    }
+  }
+  
+  .url-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    
+    @media (min-width: 1600px) {
+      margin-top: 12px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      font-size: 14px;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        font-size: 16px;
+        padding: 8px 16px;
+      }
+    }
+  }
+
+  .summarize-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    
+    @media (min-width: 1600px) {
+      margin-top: 40px;
+    }
+    
+    button {
+      min-width: 200px;
+      padding: 8px 24px;
+      font-size: 15px;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        min-width: 240px;
+        padding: 10px 28px;
+        font-size: 17px;
+      }
+    }
+  }
+
+  .footer-info {
+    margin-top: 40px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+    
+    @media (min-width: 1600px) {
+      margin-top: 48px;
+      font-size: 15px;
+    }
+    
+    a {
+      color: #004aa5;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

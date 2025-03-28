@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { RegulatoryService } from '../../services/regulatory.service';
 import { Subject, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
 
@@ -67,7 +68,8 @@ export class HomeComponent implements OnDestroy {
   
   constructor(
     private fb: FormBuilder,
-    private regulatoryService: RegulatoryService
+    private regulatoryService: RegulatoryService,
+    private router: Router
   ) {
     this.urlForm = this.fb.group({
       url: ['', [Validators.required, Validators.pattern('https?://.*')]]
@@ -154,9 +156,15 @@ export class HomeComponent implements OnDestroy {
   }
 
   summarizeDocument(): void {
-    // Placeholder for future summarization functionality
-    console.log('Summarizing document:', this.currentDocument);
-    // This is where you would navigate to the next screen or trigger the summarization API call
+    if (this.currentDocument) {
+      if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
+        this.router.navigate(['/document', this.currentDocument.id]);
+      } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
+        // Encode the URL to make it safe for navigation
+        const encodedUrl = encodeURIComponent(this.currentDocument.url);
+        this.router.navigate(['/document', encodedUrl, 'true']);
+      }
+    }
   }
 
   get canSummarize(): boolean {

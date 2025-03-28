@@ -1,0 +1,133 @@
+<div class="summary-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading document summary...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <h3>{{ error }}</h3>
+    <button mat-raised-button color="primary" (click)="returnToSearch()">
+      Return to Search
+    </button>
+  </div>
+
+  <!-- Document Summary View -->
+  <div *ngIf="documentSummary && !isLoading" class="summary-content">
+    <!-- Left Side: Document Info, Summary and Answers ONLY -->
+    <div class="document-panel">
+      <!-- Document Header -->
+      <mat-card class="document-header-card">
+        <mat-card-content>
+          <div class="document-title-section">
+            <h2>{{ documentSummary.title }}</h2>
+            <div class="document-metadata">
+              <div class="meta-item">
+                <span class="label">PDF</span>
+                <span class="meta-bullet">•</span>
+                <span>Published {{ documentSummary.publicationDate }}</span>
+                <span class="meta-bullet">•</span>
+                <span>Agency: {{ documentSummary.agency }}</span>
+                <span class="meta-bullet">•</span>
+                <span>Document type: {{ documentSummary.documentType }}</span>
+              </div>
+              <button mat-button color="primary" class="more-button">
+                more
+                <mat-icon>expand_more</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <!-- AI Summary Button -->
+          <div class="ai-summary-button">
+            <button mat-stroked-button color="primary">
+              <mat-icon>auto_awesome</mat-icon>
+              AI Summary
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- AI Summary Content -->
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="summary-text">
+            {{ documentSummary.summary }}
+          </div>
+          <div class="summary-actions">
+            <button mat-icon-button>
+              <mat-icon>star_border</mat-icon>
+            </button>
+            <button mat-icon-button>
+              <mat-icon>content_copy</mat-icon>
+            </button>
+            <button mat-icon-button>
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ONLY Answers in the left panel -->
+      <div class="answers-history">
+        <mat-card *ngFor="let response of promptResponses" class="answer-card">
+          <mat-card-content>
+            <div class="answer">
+              <mat-icon class="answer-icon">auto_awesome</mat-icon>
+              <p>{{ response.answer || 'Loading answer...' }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Right Side: Prompts, Questions Asked, and Question Input -->
+    <div class="prompts-panel">
+      <!-- Prompts Header -->
+      <div class="prompts-header">
+        <h3>Legal research prompts</h3>
+      </div>
+
+      <!-- Predefined Prompts -->
+      <div class="predefined-prompts">
+        <div *ngFor="let prompt of predefinedPrompts" class="prompt-card" (click)="askQuestion(prompt)">
+          <mat-icon class="prompt-icon">auto_awesome</mat-icon>
+          <p>{{ prompt }}</p>
+        </div>
+      </div>
+
+      <!-- QUESTIONS ASKED BY USER - These appear as dark blue bubbles -->
+      <div class="asked-questions">
+        <div *ngFor="let response of promptResponses" class="question-bubble">
+          <mat-icon class="question-icon">auto_awesome</mat-icon>
+          <p>{{ response.question }}</p>
+        </div>
+      </div>
+
+      <!-- Custom Question Input -->
+      <div class="ask-question-container">
+        <mat-icon class="prompt-icon">auto_awesome</mat-icon>
+        <h4>Ask me about this document</h4>
+        <mat-form-field appearance="outline" class="question-field">
+          <textarea 
+            matInput 
+            [formControl]="questionControl" 
+            placeholder="For best results, be as specific as possible"
+            rows="4">
+          </textarea>
+          <mat-error *ngIf="questionControl.hasError('required')">
+            Please enter a question
+          </mat-error>
+          <mat-hint align="end">1000 characters remaining</mat-hint>
+        </mat-form-field>
+        <div class="question-actions">
+          <button mat-raised-button color="primary" [disabled]="questionControl.invalid" (click)="askQuestion()">
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

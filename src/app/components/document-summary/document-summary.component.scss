@@ -1,0 +1,318 @@
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 64px);
+  background-color: #f5f5f5;
+  padding: 24px;
+  
+  @media (min-width: 1200px) {
+    padding: 32px;
+  }
+}
+
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 400px;
+  margin: auto;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  button {
+    margin-top: 24px;
+  }
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+// Left panel styles
+.document-panel {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  @media (min-width: 1024px) {
+    max-width: 70%;
+  }
+}
+
+.document-header-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.document-title-section {
+  h2 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    line-height: 1.3;
+    color: rgba(0, 0, 0, 0.87);
+    
+    @media (min-width: 1200px) {
+      font-size: 22px;
+    }
+  }
+}
+
+.document-metadata {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  
+  .meta-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .label {
+    background-color: #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  .meta-bullet {
+    margin: 0 4px;
+  }
+  
+  .more-button {
+    font-size: 14px;
+    padding: 0 8px;
+    min-width: unset;
+  }
+}
+
+.ai-summary-button {
+  margin-top: 16px;
+  
+  button {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    
+    mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.summary-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-text {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.87);
+  
+  @media (min-width: 1200px) {
+    font-size: 16px;
+  }
+}
+
+.summary-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+// Updated answer history styles - ONLY answers in left panel
+.answers-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.answer-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  .answer {
+    display: flex;
+    align-items: flex-start;
+    
+    .answer-icon {
+      color: #004aa5;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+}
+
+// Right panel styles
+.prompts-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  @media (min-width: 1024px) {
+    min-width: 300px;
+    max-width: 400px;
+    position: sticky;
+    top: 24px;
+  }
+}
+
+.prompts-header {
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+// Predefined prompts style (light colored cards)
+.predefined-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prompt-card {
+  display: flex;
+  align-items: flex-start;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background-color: #f0f4ff;
+  }
+  
+  .prompt-icon {
+    color: #004aa5;
+    margin-right: 12px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  p {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.87);
+    
+    @media (min-width: 1200px) {
+      font-size: 15px;
+    }
+  }
+}
+
+// Asked questions style (dark blue bubbles in right panel)
+.asked-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.question-bubble {
+  display: flex;
+  align-items: flex-start;
+  background-color: #004aa5;
+  border-radius: 18px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  .question-icon {
+    color: white;
+    margin-right: 12px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  p {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: white;
+    
+    @media (min-width: 1200px) {
+      font-size: 15px;
+    }
+  }
+}
+
+.ask-question-container {
+  margin-top: 24px;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  h4 {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    color: rgba(0, 0, 0, 0.87);
+    display: flex;
+    align-items: center;
+  }
+  
+  .prompt-icon {
+    color: #004aa5;
+    margin-right: 8px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .question-field {
+    width: 100%;
+  }
+  
+  .question-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { RegulatoryService } from '../../services/regulatory.service';
+import { finalize } from 'rxjs';
 
 export interface DocumentSummary {
   id: string;
@@ -68,7 +69,8 @@ export class DocumentSummaryComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private regulatoryService: RegulatoryService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -82,6 +84,7 @@ export class DocumentSummaryComponent implements OnInit {
       } else {
         this.error = 'No document specified';
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force change detection
       }
     });
   }
@@ -89,18 +92,26 @@ export class DocumentSummaryComponent implements OnInit {
   private loadDocumentSummary(documentId: string, isUrl: boolean): void {
     this.isLoading = true;
     this.error = null;
+    this.cdr.detectChanges(); // Force change detection on loading state
     
-    this.regulatoryService.summarizeDocument(documentId, isUrl).subscribe({
-      next: (summary) => {
-        this.documentSummary = summary;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading document summary', err);
-        this.error = 'Failed to load document summary. Please try again.';
-        this.isLoading = false;
-      }
-    });
+    this.regulatoryService.summarizeDocument(documentId, isUrl)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges(); // Force change detection when loading completes
+        })
+      )
+      .subscribe({
+        next: (summary) => {
+          this.documentSummary = summary;
+          this.cdr.detectChanges(); // Force change detection
+        },
+        error: (err) => {
+          console.error('Error loading document summary', err);
+          this.error = 'Failed to load document summary. Please try again.';
+          this.cdr.detectChanges(); // Force change detection
+        }
+      });
   }
 
   askQuestion(question: string = ''): void {
@@ -125,6 +136,7 @@ export class DocumentSummaryComponent implements OnInit {
     
     // Add to the list immediately to show the question
     this.promptResponses = [...this.promptResponses, newPrompt];
+    this.cdr.detectChanges(); // Force change detection
     
     // Clear the input if using the form
     if (!question) {
@@ -148,6 +160,7 @@ export class DocumentSummaryComponent implements OnInit {
           }
           return pr;
         });
+        this.cdr.detectChanges(); // Force change detection
       },
       error: (err) => {
         console.error('Error asking question', err);
@@ -161,6 +174,7 @@ export class DocumentSummaryComponent implements OnInit {
           }
           return pr;
         });
+        this.cdr.detectChanges(); // Force change detection
       }
     });
   }

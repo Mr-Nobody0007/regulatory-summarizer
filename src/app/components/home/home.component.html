@@ -35,16 +35,49 @@
       <div *ngIf="selectedInputMethod === 'search'" class="search-section">
         <h3>Search for regulatory documents</h3>
         
-        <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
-          <input matInput [formControl]="searchControl" type="text" placeholder="Search for a document">
-          <mat-icon matPrefix>search</mat-icon>
-          <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
-          <button *ngIf="searchControl.value && !isLoading" matSuffix mat-icon-button aria-label="Clear" 
-            (click)="searchControl.setValue('')">
-            <mat-icon>close</mat-icon>
-          </button>
-        </mat-form-field>
+        <div class="search-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
+            <input 
+              matInput 
+              [formControl]="searchControl" 
+              type="text" 
+              placeholder="Search for a document"
+              autocomplete="off">
+            <mat-icon matPrefix>search</mat-icon>
+            <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
+            <button 
+              *ngIf="searchControl.value && !isLoading" 
+              matSuffix 
+              mat-icon-button 
+              aria-label="Clear" 
+              (click)="searchControl.setValue('')">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <!-- Google-style Dropdown Results -->
+          <div *ngIf="searchResults.length > 0 && !selectedDocument" class="search-dropdown">
+            <div 
+              *ngFor="let result of searchResults" 
+              class="search-result-item"
+              (click)="selectDocument(result)">
+              <mat-icon>description</mat-icon>
+              <div class="result-details">
+                <div class="result-title">{{ result.title }}</div>
+                <div class="result-meta">{{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results Message (appears in dropdown) -->
+          <div *ngIf="searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
+            <div class="no-results-message">
+              <mat-icon>search_off</mat-icon>
+              <span>No documents found matching your search. Please try different keywords.</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Selected Document Display -->
         <div *ngIf="selectedDocument" class="selected-document">
@@ -60,29 +93,6 @@
               </button>
             </mat-card-content>
           </mat-card>
-        </div>
-
-        <!-- Search Results -->
-        <div *ngIf="!selectedDocument && searchResults.length > 0" class="search-results">
-          <mat-card>
-            <mat-card-content>
-              <mat-selection-list [multiple]="false">
-                <mat-list-option *ngFor="let result of searchResults" 
-                  (click)="selectDocument(result)">
-                  <div class="search-result-item">
-                    <h4 matLine>{{ result.title }}</h4>
-                    <p matLine>{{ result.documentType }} • {{ result.agencyName }}</p>
-                    <p matLine class="date">Published: {{ result.publicationDate }}</p>
-                  </div>
-                </mat-list-option>
-              </mat-selection-list>
-            </mat-card-content>
-          </mat-card>
-        </div>
-
-        <!-- No Results Message -->
-        <div *ngIf="searchControl.value && noResults" class="no-results">
-          <p>No documents found matching your search. Please try different keywords.</p>
         </div>
       </div>
 

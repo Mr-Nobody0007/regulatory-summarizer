@@ -59,6 +59,8 @@ export class HomeComponent implements OnDestroy {
   isLoading = false;
   noResults = false;
   selectedDocument: SearchResult | null = null;
+
+  showSearchResults = false;
   
   // URL related properties
   urlForm: FormGroup;
@@ -89,39 +91,55 @@ export class HomeComponent implements OnDestroy {
     this.currentDocument = null;
     this.selectedDocument = null;
     this.searchResults = [];
+    this.showSearchResults = false;
     this.isUrlSubmitted = false;
     this.searchControl.setValue('');
     this.urlForm.reset();
   }
 
+
+
+
   private setupSearchListener(): void {
     this.searchControl.valueChanges.pipe(
       takeUntil(this.destroy$),
       debounceTime(300),
-      distinctUntilChanged(),
-      filter((term: string | null) => !!term && term.length >= 3),
-      switchMap(term => {
-        this.isLoading = true;
-        this.noResults = false;
-        return this.regulatoryService.searchDocuments(term as string);
-      })
-    ).subscribe({
-      next: (results) => {
-        this.searchResults = results;
-        this.isLoading = false;
-        this.noResults = results.length === 0;
-      },
-      error: (err) => {
-        console.error('Error searching documents', err);
-        this.isLoading = false;
+      distinctUntilChanged()
+    ).subscribe(term => {
+      // If search is empty, clear results
+      if (!term || term.length < 3) {
         this.searchResults = [];
-        this.noResults = true;
+        this.noResults = false;
+        this.isLoading = false;
+        return;
       }
+      
+      // Show loading and clear previous results state
+      this.isLoading = true;
+      this.noResults = false;
+      this.showSearchResults = true;
+      
+      // Call the service for results
+      this.regulatoryService.searchDocuments(term as string)
+        .subscribe({
+          next: (results) => {
+            this.searchResults = results;
+            this.isLoading = false;
+            this.noResults = results.length === 0;
+          },
+          error: (err) => {
+            console.error('Error searching documents', err);
+            this.isLoading = false;
+            this.searchResults = [];
+            this.noResults = true;
+          }
+        });
     });
   }
 
   selectDocument(document: SearchResult): void {
     this.selectedDocument = document;
+    this.showSearchResults = false;
     
     this.currentDocument = {
       id: document.id,
@@ -131,9 +149,20 @@ export class HomeComponent implements OnDestroy {
     };
   }
 
+  clearSearch(): void {
+    this.searchControl.setValue('');
+    this.searchResults = [];
+    this.showSearchResults = false;
+  }
+
   clearDocumentSelection(): void {
     this.selectedDocument = null;
     this.currentDocument = null;
+    
+    // If there's still a search term, show search results again
+    if (this.searchControl.value && this.searchResults.length > 0) {
+      this.showSearchResults = true;
+    }
   }
 
   onUrlSubmit(): void {

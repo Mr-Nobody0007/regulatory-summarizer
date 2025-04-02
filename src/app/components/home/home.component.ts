@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -50,7 +50,7 @@ export interface SearchResult {
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnDestroy {
-  selectedInputMethod: InputMethod = null;
+  selectedInputMethod: InputMethod = 'search';
   currentDocument: DocumentContext | null = null;
   
   // Search related properties
@@ -59,19 +59,20 @@ export class HomeComponent implements OnDestroy {
   isLoading = false;
   noResults = false;
   selectedDocument: SearchResult | null = null;
-
   showSearchResults = false;
   
   // URL related properties
   urlForm: FormGroup;
   isUrlSubmitted = false;
-  
+  @ViewChild('searchContainer') searchContainer!: ElementRef;
+
   private destroy$ = new Subject<void>();
   
   constructor(
     private fb: FormBuilder,
     private regulatoryService: RegulatoryService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef // Added ChangeDetectorRef
   ) {
     this.urlForm = this.fb.group({
       url: ['', [Validators.required, Validators.pattern('https?://.*')]]
@@ -95,22 +96,32 @@ export class HomeComponent implements OnDestroy {
     this.isUrlSubmitted = false;
     this.searchControl.setValue('');
     this.urlForm.reset();
+    this.cdr.detectChanges(); // Force change detection
   }
 
-
-
-
+  @HostListener('document:click', ['$event'])
+handleClickOutside(event: MouseEvent) {
+  // If we have search results showing, check if click was outside the search container
+  if (this.showSearchResults && this.searchContainer) {
+    if (!this.searchContainer.nativeElement.contains(event.target)) {
+      this.showSearchResults = false;
+      this.cdr.detectChanges();
+    }
+  }
+}
   private setupSearchListener(): void {
     this.searchControl.valueChanges.pipe(
       takeUntil(this.destroy$),
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(term => {
-      // If search is empty, clear results
+      // Clear results if search is empty
       if (!term || term.length < 3) {
         this.searchResults = [];
         this.noResults = false;
         this.isLoading = false;
+        this.showSearchResults = false;
+        this.cdr.detectChanges(); // Force change detection
         return;
       }
       
@@ -118,6 +129,7 @@ export class HomeComponent implements OnDestroy {
       this.isLoading = true;
       this.noResults = false;
       this.showSearchResults = true;
+      this.cdr.detectChanges(); // Force change detection
       
       // Call the service for results
       this.regulatoryService.searchDocuments(term as string)
@@ -126,12 +138,14 @@ export class HomeComponent implements OnDestroy {
             this.searchResults = results;
             this.isLoading = false;
             this.noResults = results.length === 0;
+            this.cdr.detectChanges(); // Force change detection
           },
           error: (err) => {
             console.error('Error searching documents', err);
             this.isLoading = false;
             this.searchResults = [];
             this.noResults = true;
+            this.cdr.detectChanges(); // Force change detection
           }
         });
     });
@@ -147,12 +161,8 @@ export class HomeComponent implements OnDestroy {
       sourceType: 'search',
       selected: true
     };
-  }
-
-  clearSearch(): void {
-    this.searchControl.setValue('');
-    this.searchResults = [];
-    this.showSearchResults = false;
+    
+    this.cdr.detectChanges(); // Force change detection
   }
 
   clearDocumentSelection(): void {
@@ -163,6 +173,15 @@ export class HomeComponent implements OnDestroy {
     if (this.searchControl.value && this.searchResults.length > 0) {
       this.showSearchResults = true;
     }
+    
+    this.cdr.detectChanges(); // Force change detection
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+    this.searchResults = [];
+    this.showSearchResults = false;
+    this.cdr.detectChanges(); // Force change detection
   }
 
   onUrlSubmit(): void {
@@ -175,6 +194,8 @@ export class HomeComponent implements OnDestroy {
         url: url,
         selected: true
       };
+      
+      this.cdr.detectChanges(); // Force change detection
     }
   }
 
@@ -182,6 +203,7 @@ export class HomeComponent implements OnDestroy {
     this.urlForm.reset();
     this.isUrlSubmitted = false;
     this.currentDocument = null;
+    this.cdr.detectChanges(); // Force change detection
   }
 
   summarizeDocument(): void {

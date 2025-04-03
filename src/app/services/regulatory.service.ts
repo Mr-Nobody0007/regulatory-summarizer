@@ -3,6 +3,7 @@ import { Observable, from, of, delay } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { SearchResult } from '../components/home/home.component';
 import { DocumentSummary } from '../components/document-summary/document-summary.component';
+import { DocumentDataService } from './document-data.service';
 
 export interface QuestionResponse {
   id: string;
@@ -15,7 +16,7 @@ export interface QuestionResponse {
 export class RegulatoryService {
   private federalRegisterApiUrl = 'https://www.federalregister.gov/api/v1/documents';
   
-  constructor() { }
+  constructor(private documentDataService: DocumentDataService) { }
 
   /**
    * Search documents from the Federal Register API using fetch
@@ -46,7 +47,15 @@ export class RegulatoryService {
             title: item.title,
             documentType: item.type || 'Document',
             agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
-            publicationDate: new Date(item.publication_date).toLocaleDateString()
+            publicationDate: new Date(item.publication_date).toLocaleDateString(),
+            // Add additional metadata
+            documentNumber: item.document_number,
+            startPage: item.start_page,
+            endPage: item.end_page,
+            cfrReferences: this.formatCfrReferences(item.cfr_references),
+            docketIds: item.docket_ids || [],
+            regulationIdNumbers: item.regulation_id_numbers || [],
+            effectiveDate: item.effective_on ? new Date(item.effective_on).toLocaleDateString() : null
           }));
         }
         return [];
@@ -56,6 +65,24 @@ export class RegulatoryService {
         return of([]);
       })
     );
+  }
+  
+  /**
+   * Format CFR references into a readable format
+   * @param cfrRefs The CFR references array from API
+   * @returns Formatted CFR references
+   */
+  private formatCfrReferences(cfrRefs: any[] | null): string[] {
+    if (!cfrRefs || !Array.isArray(cfrRefs) || cfrRefs.length === 0) {
+      return [];
+    }
+    
+    return cfrRefs.map(ref => {
+      if (ref.title && ref.part) {
+        return `${ref.title} CFR ${ref.part}`;
+      }
+      return '';
+    }).filter(ref => ref !== '');
   }
 
   /**
@@ -72,44 +99,119 @@ export class RegulatoryService {
   }
 
   /**
+ * Get detailed information for a single document
+ * @param documentId The document ID to fetch details for
+ * @returns Observable with detailed document information
+ */
+getDocumentDetails(documentId: string): Observable<any> {
+  // In a real implementation, you would call the Federal Register API
+  // to get details for a specific document
+  const url = `${this.federalRegisterApiUrl}/${documentId}`;
+  
+  // For now, this is a mock implementation
+  return of({
+    id: documentId,
+    title: 'Required RuleMaking on Personal Financial Data Rights',
+    documentType: 'Notice',
+    agencyName: 'Small Business Administration',
+    publicationDate: 'January 31, 2024',
+    rin: 'RIN 3245-AH98',
+    citation: '89 FR 6382'
+  }).pipe(
+    // Simulate network delay
+    delay(500)
+  );
+  
+  // Uncomment this for the real implementation
+  
+  return from(
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+  ).pipe(
+    map(item => ({
+      id: item.document_number,
+      title: item.title,
+      documentType: item.type || 'Document',
+      agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
+      publicationDate: new Date(item.publication_date).toLocaleDateString(),
+      rin: Array.isArray(item.regulation_id_numbers) && item.regulation_id_numbers.length > 0 
+          ? item.regulation_id_numbers[0] 
+          : 'N/A',
+      citation: item.citation || 'N/A'
+    })),
+    catchError(error => {
+      console.error('Error fetching document details', error);
+      return of(null);
+    })
+  );
+  
+}
+
+  /**
    * Get a document summary by ID or URL
    * @param documentId Document ID or URL to summarize
    * @param isUrl Whether the provided ID is a URL
    * @returns Observable of summarization result
    */
+  // Update the summarizeDocument method in regulatory.service.ts
   summarizeDocument(documentId: string, isUrl: boolean = false): Observable<DocumentSummary> {
-    // NOTE: This is a mockup implementation
-    // In a real application, you would call your backend API
-    
-    return of({
-      id: documentId,
-      title: isUrl 
-        ? 'Document from external URL' 
-        : '(2024-12658) Required RuleMaking on Personal Financial Data Rights; Industry Standard-Setting',
-      publicationDate: 'January 31, 2024',
-      agency: 'Small Business Administration',
-      documentType: 'Notice',
-      summary: `
-        Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has 
-        been the industry's standard dummy text ever since the 1500s, when an unknown printer took a 
-        galley of type and scrambled it to make a type specimen book. It has survived not only five 
-        centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was 
-        popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, 
-        and more recently with desktop publishing software like Aldus PageMaker including versions of 
-        Lorem Ipsum.
+    // If it's a URL, use the mock implementation for now
+    if (isUrl) {
+      return of({
+        id: documentId,
+        title: 'Document from external URL',
+        publicationDate: 'January 31, 2024',
+        agency: 'Small Business Administration',
+        documentType: 'Notice',
+        summary: `...Mock summary content...`
+      }).pipe(delay(1500));
+    }
 
-        Why do we use it?
-        It is a long established fact that a reader will be distracted by the readable content of a page 
-        when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal 
-        distribution of letters, as opposed to using 'Content here, content here', making it look like 
-        readable English. Many desktop publishing packages and web page editors now use Lorem 
-        Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still 
-        in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes 
-        on purpose (injected humour and the like).
-      `
-    }).pipe(
-      // Simulate network delay
-      delay(1500)
+    // For document IDs, fetch the actual document from the API
+    const url = `${this.federalRegisterApiUrl}/${documentId}`;
+
+    return from(
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+    ).pipe(
+      map(item => ({
+        id: item.document_number,
+        title: item.title,
+        publicationDate: new Date(item.publication_date).toLocaleDateString(),
+        agency: item.agencies?.[0]?.name || 'Unknown Agency',
+        documentType: item.type || 'Document',
+        summary: item.abstract || 'No summary available',
+        // Additional metadata
+        documentNumber: item.document_number,
+        startPage: item.start_page,
+        endPage: item.end_page,
+        cfrReferences: this.formatCfrReferences(item.cfr_references),
+        docketIds: item.docket_ids || [],
+        regulationIdNumbers: item.regulation_id_numbers || [],
+        effectiveDate: item.effective_on ? new Date(item.effective_on).toLocaleDateString() : undefined
+      })),
+      catchError(error => {
+        console.error('Error fetching document', error);
+        // Fall back to mock data on error
+        return of({
+          id: documentId,
+          title: '(2024-12658) Required RuleMaking on Personal Financial Data Rights',
+          publicationDate: 'January 31, 2024',
+          agency: 'Small Business Administration',
+          documentType: 'Notice',
+          summary: `...Mock summary content...`
+        }).pipe(delay(1500));
+      })
     );
   }
 

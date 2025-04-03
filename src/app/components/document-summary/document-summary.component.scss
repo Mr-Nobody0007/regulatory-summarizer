@@ -282,6 +282,28 @@
   }
 }
 
+.extended-metadata {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  
+  .extended-meta-item {
+    display: flex;
+    flex-direction: column;
+    
+    .label {
+      font-weight: 500;
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.6);
+    }
+    
+    span:not(.label) {
+      font-size: 14px;
+    }
+  }
+}
+
 .ask-question-container {
   margin-top: 24px;
   background: white;

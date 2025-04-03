@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
+import { DocumentDataService } from '../../services/document-data.service';
 
 export type InputMethod = 'search' | 'url' | null;
 
@@ -30,6 +31,14 @@ export interface SearchResult {
   documentType: string;
   agencyName: string;
   publicationDate: string;
+  // Additional metadata
+  documentNumber?: string;
+  startPage?: number;
+  endPage?: number;
+  cfrReferences?: string[];
+  docketIds?: string[];
+  regulationIdNumbers?: string[];
+  effectiveDate?: string;
 }
 
 @Component({
@@ -60,7 +69,7 @@ export class HomeComponent implements OnDestroy {
   noResults = false;
   selectedDocument: SearchResult | null = null;
   showSearchResults = false;
-  
+  selectedDocumentLoading = false;
   // URL related properties
   urlForm: FormGroup;
   isUrlSubmitted = false;
@@ -72,7 +81,8 @@ export class HomeComponent implements OnDestroy {
     private fb: FormBuilder,
     private regulatoryService: RegulatoryService,
     private router: Router,
-    private cdr: ChangeDetectorRef // Added ChangeDetectorRef
+    private cdr: ChangeDetectorRef, // Added ChangeDetectorRef
+    private documentDataService: DocumentDataService
   ) {
     this.urlForm = this.fb.group({
       url: ['', [Validators.required, Validators.pattern('https?://.*')]]
@@ -162,12 +172,20 @@ handleClickOutside(event: MouseEvent) {
       selected: true
     };
     
+    // Store the selected document in the service
+    this.documentDataService.setSelectedDocument(document);
+    
     this.cdr.detectChanges(); // Force change detection
   }
+
+  
 
   clearDocumentSelection(): void {
     this.selectedDocument = null;
     this.currentDocument = null;
+    
+    // Clear the document from the service
+    this.documentDataService.setSelectedDocument(null);
     
     // If there's still a search term, show search results again
     if (this.searchControl.value && this.searchResults.length > 0) {
@@ -176,7 +194,6 @@ handleClickOutside(event: MouseEvent) {
     
     this.cdr.detectChanges(); // Force change detection
   }
-
   clearSearch(): void {
     this.searchControl.setValue('');
     this.searchResults = [];

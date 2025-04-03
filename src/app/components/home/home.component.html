@@ -67,8 +67,12 @@
               (click)="selectDocument(result)">
               <mat-icon>description</mat-icon>
               <div class="result-details">
-                <div class="result-title">{{ result.title }}</div>
-                <div class="result-meta">{{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}</div>
+                <div class="result-title">({{ result.id }}) {{ result.title }}</div>
+                <div class="result-meta">
+                  {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
+                  <!-- <span>{{ result.rin }}</span>
+                  <span>• Citation: {{ result.citation }}</span> -->
+                </div>
               </div>
             </div>
           </div>
@@ -92,9 +96,27 @@
           <mat-card>
             <mat-card-content>
               <div class="document-info">
-                <h4>{{ selectedDocument.title }}</h4>
-                <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }}</p>
-                <p>Published: {{ selectedDocument.publicationDate }}</p>
+                <h4>({{ selectedDocument.id }}) {{ selectedDocument.title }}</h4>
+                <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }} • Published: {{ selectedDocument.publicationDate }}</p>
+                
+                <!-- Loading State for Details -->
+                <div *ngIf="selectedDocumentLoading" class="details-loading">
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span>Loading additional details...</span>
+                </div>
+                
+                <!-- Additional Details when Available -->
+                <!-- <p *ngIf="!selectedDocumentLoading">
+                  <ng-container *ngIf="selectedDocument.rin && selectedDocument.rin !== 'N/A'">
+                    <span class="detail-label"></span> {{ selectedDocument.rin }}
+                  </ng-container>
+                  <ng-container *ngIf="selectedDocument.rin && selectedDocument.rin !== 'N/A' && selectedDocument.citation && selectedDocument.citation !== 'N/A'">
+                    <span class="detail-separator"> • </span>
+                  </ng-container>
+                  <ng-container *ngIf="selectedDocument.citation && selectedDocument.citation !== 'N/A'">
+                    <span class="detail-label">Citation:</span> {{ selectedDocument.citation }}
+                  </ng-container>
+                </p> -->
               </div>
               <button mat-icon-button color="primary" (click)="clearDocumentSelection()">
                 <mat-icon>close</mat-icon>

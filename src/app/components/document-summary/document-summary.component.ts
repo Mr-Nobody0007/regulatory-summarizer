@@ -12,7 +12,12 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { RegulatoryService } from '../../services/regulatory.service';
 import { finalize } from 'rxjs';
+import { DocumentDataService } from '../../services/document-data.service';
+// Update the DocumentSummary interface in document-summary.component.ts
 
+
+
+// In document-summary.component.ts
 export interface DocumentSummary {
   id: string;
   title: string;
@@ -20,6 +25,14 @@ export interface DocumentSummary {
   agency: string;
   documentType: string;
   summary: string;
+  // New fields
+  startPage?: number;
+  endPage?: number;
+  cfrReferences?: string[];
+  docketIds?: string[];
+  regulationIdNumbers?: string[];
+  effectiveDate?: string;
+  documentNumber?: string;
 }
 
 export interface PromptResponse {
@@ -50,6 +63,7 @@ export interface PromptResponse {
 export class DocumentSummaryComponent implements OnInit {
   documentSummary: DocumentSummary | null = null;
   isLoading = true;
+  showExtendedMetadata = false;
   error: string | null = null;
   
   // For handling the Q&A
@@ -69,6 +83,7 @@ export class DocumentSummaryComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private regulatoryService: RegulatoryService,
+    private documentDataService: DocumentDataService, // Add this line
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {}
@@ -113,6 +128,12 @@ export class DocumentSummaryComponent implements OnInit {
         }
       });
   }
+
+
+
+toggleExtendedMetadata(): void {
+  this.showExtendedMetadata = !this.showExtendedMetadata;
+}
 
   askQuestion(question: string = ''): void {
     // If no question provided, use the one from the form

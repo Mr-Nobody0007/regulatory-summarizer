@@ -347,6 +347,30 @@
         word-break: break-all;
       }
     }
+    
+    // New styles for the details section
+    .details-loading {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      
+      mat-spinner {
+        margin-right: 10px;
+      }
+      
+      span {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+    
+    .detail-label {
+      font-weight: 500;
+    }
+    
+    .detail-separator {
+      margin: 0 6px;
+    }
   }
 
   .url-actions {

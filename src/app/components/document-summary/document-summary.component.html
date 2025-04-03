@@ -22,7 +22,7 @@
       <mat-card class="document-header-card">
         <mat-card-content>
           <div class="document-title-section">
-            <h2>{{ documentSummary.title }}</h2>
+            <h2>({{ documentSummary.id }}) {{ documentSummary.title }}</h2>
             <div class="document-metadata">
               <div class="meta-item">
                 <span class="label">PDF</span>
@@ -33,10 +33,38 @@
                 <span class="meta-bullet">•</span>
                 <span>Document type: {{ documentSummary.documentType }}</span>
               </div>
-              <button mat-button color="primary" class="more-button">
-                more
-                <mat-icon>expand_more</mat-icon>
+              <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
+                {{ showExtendedMetadata ? 'less' : 'more' }}
+                <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
               </button>
+            </div>
+            
+            <!-- Extended metadata section -->
+            <div class="extended-metadata" *ngIf="showExtendedMetadata">
+              <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
+                <span class="label">Pages</span>
+                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }}</span>
+              </div>
+              <div class="extended-meta-item" *ngIf="documentSummary.cfrReferences && documentSummary.cfrReferences.length > 0">
+                <span class="label">CFR</span>
+                <span>{{ documentSummary.cfrReferences.join(', ') }}</span>
+              </div>
+              <div class="extended-meta-item" *ngIf="documentSummary.docketIds && documentSummary.docketIds.length > 0">
+                <span class="label">Docket</span>
+                <span>{{ documentSummary.docketIds.join(', ') }}</span>
+              </div>
+              <div class="extended-meta-item" *ngIf="documentSummary.regulationIdNumbers && documentSummary.regulationIdNumbers.length > 0">
+                <span class="label">RIN</span>
+                <span>{{ documentSummary.regulationIdNumbers.join(', ') }}</span>
+              </div>
+              <div class="extended-meta-item" *ngIf="documentSummary.documentNumber">
+                <span class="label">Document No</span>
+                <span>{{ documentSummary.documentNumber }}</span>
+              </div>
+              <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
+                <span class="label">Effective Date</span>
+                <span>{{ documentSummary.effectiveDate }}</span>
+              </div>
             </div>
           </div>
           

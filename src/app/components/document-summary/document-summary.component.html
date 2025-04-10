@@ -1,8 +1,27 @@
 <div class="summary-container">
-  <!-- Loading State -->
+  <!-- Loading State - Enhanced with API process steps -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>Loading document summary...</p>
+    <p *ngIf="!isApiProcessing">Loading document summary...</p>
+    
+    <!-- Multi-step API process loading indicators -->
+    <div *ngIf="isApiProcessing" class="api-process-loading">
+      <p class="loading-message">Processing document summary...</p>
+      <div class="process-steps">
+        <div class="step" [class.active]="processStep >= 1" [class.completed]="processStep > 1">
+          <div class="step-number">1</div>
+          <div class="step-label">Fetching document metadata</div>
+        </div>
+        <div class="step" [class.active]="processStep >= 2" [class.completed]="processStep > 2">
+          <div class="step-number">2</div>
+          <div class="step-label">Processing document text</div>
+        </div>
+        <div class="step" [class.active]="processStep >= 3" [class.completed]="processStep > 3">
+          <div class="step-number">3</div>
+          <div class="step-label">Generating AI summary</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Error State -->
@@ -104,7 +123,13 @@
           <mat-card-content>
             <div class="answer">
               <mat-icon class="answer-icon">auto_awesome</mat-icon>
-              <p>{{ response.answer || 'Loading answer...' }}</p>
+              <!-- Show loading spinner if answer is still loading -->
+              <div *ngIf="response.isLoading" class="answer-loading">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Generating answer...</span>
+              </div>
+              <!-- Show answer when loaded -->
+              <p *ngIf="!response.isLoading">{{ response.answer || 'Failed to generate answer. Please try again.' }}</p>
             </div>
           </mat-card-content>
         </mat-card>
@@ -143,15 +168,20 @@
             matInput 
             [formControl]="questionControl" 
             placeholder="For best results, be as specific as possible"
-            rows="4">
+            rows="4"
+            [maxlength]="questionCharLimit">
           </textarea>
           <mat-error *ngIf="questionControl.hasError('required')">
             Please enter a question
           </mat-error>
-          <mat-hint align="end">1000 characters remaining</mat-hint>
+          <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
         </mat-form-field>
         <div class="question-actions">
-          <button mat-raised-button color="primary" [disabled]="questionControl.invalid" (click)="askQuestion()">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            [disabled]="questionControl.invalid" 
+            (click)="askQuestion()">
             Submit
           </button>
         </div>

@@ -40,6 +40,7 @@ export interface PromptResponse {
   question: string;
   answer: string;
   timestamp: Date;
+  isActive: boolean; // Flag to track the active/current question - Making it required instead of optional
 }
 
 @Component({
@@ -70,14 +71,56 @@ export class DocumentSummaryComponent implements OnInit {
   questionControl = new FormControl('', [Validators.required]);
   promptResponses: PromptResponse[] = [];
   
-  // Predefined prompts
-  predefinedPrompts = [
-    'When was it last updated?',
-    'Summarize it in a different way',
-    'Search for another document',
-    'Provide a concise summary of the key requirements and obligations outlined in this regulation using approximately 500 words',
-    'Does this apply in New York?'
-  ];
+  // Default summary prompt - to be shown as the first question
+  defaultSummaryPrompt = 'Provide a concise summary of this document';
+  
+  // Predefined prompts grouped by document type
+  predefinedPromptsByType: Record<string, string[]> = {
+    // Default prompts for all document types
+    'default': [
+      'When was it last updated?',
+      'Summarize it in a different way',
+      'Search for another document'
+    ],
+    
+    // Specific prompts for different document types
+    'Notice': [
+      'When does this notice take effect?',
+      'What actions are required based on this notice?',
+      'Are there any deadlines I should be aware of?',
+      'Does this notice supersede any previous notices?'
+    ],
+    
+    'Rule': [
+      'What are the key compliance requirements in this rule?',
+      'When does this rule take effect?',
+      'What penalties apply for non-compliance?',
+      'How does this rule apply to small businesses?',
+      'What reporting requirements does this rule establish?'
+    ],
+    
+    'Proposed Rule': [
+      'What changes are being proposed?',
+      'How does this differ from the current regulation?',
+      'When is the comment period deadline?',
+      'How can I submit comments on this proposal?',
+      'What is the expected implementation timeline?'
+    ],
+    
+    'Order': [
+      'Who is affected by this order?',
+      'What are the main directives in this order?',
+      'What is the timeframe for compliance?',
+      'Are there any exemptions to this order?'
+    ]
+  };
+  
+  // Active list of predefined prompts - will be set based on document type
+  predefinedPrompts: string[] = [];
+  
+  // Control how many prompts to show initially
+  initialPromptCount = 4;
+  showAllPrompts = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -119,6 +162,14 @@ export class DocumentSummaryComponent implements OnInit {
       .subscribe({
         next: (summary) => {
           this.documentSummary = summary;
+          
+          // Set up predefined prompts based on document type
+          this.setupPredefinedPrompts(summary.documentType);
+          
+          // Add the default summary prompt as the first question
+          // with the summary that was just loaded as the answer
+          this.addDefaultSummaryPrompt(summary.summary);
+          
           this.cdr.detectChanges(); // Force change detection
         },
         error: (err) => {
@@ -129,11 +180,79 @@ export class DocumentSummaryComponent implements OnInit {
       });
   }
 
+  /**
+   * Set up the predefined prompts based on document type
+   */
+  private setupPredefinedPrompts(documentType: string): void {
+    // Start with default prompts
+    let prompts = [...this.predefinedPromptsByType['default']];
+    
+    // Add document-type specific prompts if available
+    if (documentType && this.predefinedPromptsByType[documentType]) {
+      prompts = prompts.concat(this.predefinedPromptsByType[documentType]);
+    }
+    
+    // Add a common context-specific prompt
+    prompts.push(`Provide a concise summary of the key requirements and obligations outlined in this ${documentType.toLowerCase()} using approximately 500 words`);
+    
+    // Add a geographically relevant prompt
+    prompts.push(`Does this ${documentType.toLowerCase()} apply in New York?`);
+    
+    // Set the prompts
+    this.predefinedPrompts = prompts;
+    
+    // Reset the show all prompts flag
+    this.showAllPrompts = false;
+  }
+  
+  selectQuestion(selectedResponseId: string): void {
+    // Set the selected question as active and deactivate others
+    this.promptResponses = this.promptResponses.map(pr => ({
+      ...pr,
+      isActive: pr.id === selectedResponseId
+    }));
+    this.cdr.detectChanges(); // Force change detection
+  }
 
+  // Add a new method to handle the default summary prompt
+  private addDefaultSummaryPrompt(summaryText: string): void {
+    // Create a prompt response for the default summary
+    const defaultPromptResponse: PromptResponse = {
+      id: `default-summary-${Date.now()}`,
+      question: this.defaultSummaryPrompt,
+      answer: summaryText,
+      timestamp: new Date(),
+      isActive: true // Mark as active initially
+    };
+    
+    // Add it to the beginning of the prompt responses array
+    this.promptResponses = [defaultPromptResponse];
+    this.cdr.detectChanges(); // Force change detection
+  }
 
-toggleExtendedMetadata(): void {
-  this.showExtendedMetadata = !this.showExtendedMetadata;
-}
+  toggleExtendedMetadata(): void {
+    this.showExtendedMetadata = !this.showExtendedMetadata;
+  }
+  
+  // Added method to select a previously asked question
+  /**
+   * Toggle between showing all prompts or just the initial set
+   */
+  toggleShowAllPrompts(): void {
+    this.showAllPrompts = !this.showAllPrompts;
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Get the prompts to display based on current state
+   */
+  get visiblePrompts(): string[] {
+    if (this.showAllPrompts) {
+      return this.predefinedPrompts;
+    } else {
+      return this.predefinedPrompts.slice(0, this.initialPromptCount);
+    }
+  }
 
   askQuestion(question: string = ''): void {
     // If no question provided, use the one from the form
@@ -152,11 +271,19 @@ toggleExtendedMetadata(): void {
       id: `temp-${Date.now()}`,
       question: questionText,
       answer: '', // Will be filled by the API response
-      timestamp: new Date()
+      timestamp: new Date(),
+      isActive: true // Set this as the active question
     };
     
-    // Add to the list immediately to show the question
-    this.promptResponses = [...this.promptResponses, newPrompt];
+    // Set all existing questions as inactive
+    const updatedPrompts = this.promptResponses.map(pr => ({
+      ...pr,
+      isActive: false
+    }));
+    
+    // Add the new question to the end of the array
+    this.promptResponses = [...updatedPrompts, newPrompt];
+    
     this.cdr.detectChanges(); // Force change detection
     
     // Clear the input if using the form
@@ -176,7 +303,8 @@ toggleExtendedMetadata(): void {
             return {
               ...pr,
               id: response.id || pr.id,
-              answer: response.answer
+              answer: response.answer,
+              isActive: true // Ensure it's still active
             };
           }
           return pr;
@@ -190,7 +318,8 @@ toggleExtendedMetadata(): void {
           if (pr.id === newPrompt.id) {
             return {
               ...pr,
-              answer: 'Sorry, there was an error processing your question. Please try again.'
+              answer: 'Sorry, there was an error processing your question. Please try again.',
+              isActive: true // Ensure it's still active
             };
           }
           return pr;

@@ -335,7 +335,43 @@
   }
 }
 
-// Asked questions style (dark blue bubbles in right panel)
+// "More suggestions" card
+.more-suggestions-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 4px;
+  
+  &:hover {
+    background-color: #e8e8e8;
+  }
+  
+  .more-icon {
+    color: #004aa5;
+    margin-right: 8px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #004aa5;
+    
+    @media (min-width: 1200px) {
+      font-size: 15px;
+    }
+  }
+}
+
+// Asked questions style (with active and inactive states)
 .asked-questions {
   display: flex;
   flex-direction: column;
@@ -346,13 +382,38 @@
 .question-bubble {
   display: flex;
   align-items: flex-start;
-  background-color: #004aa5;
   border-radius: 18px;
   padding: 12px 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+  
+  // Active question (dark blue) - this is the default if no class is applied
+  &.active {
+    background-color: #004aa5;
+    
+    .question-icon {
+      color: white;
+    }
+    
+    p {
+      color: white;
+    }
+  }
+  
+  // Inactive question (light blue/gray)
+  &.inactive {
+    background-color: #e3e9f2;
+    
+    .question-icon {
+      color: #5c7ba9;
+    }
+    
+    p {
+      color: #475d7a;
+    }
+  }
   
   .question-icon {
-    color: white;
     margin-right: 12px;
     font-size: 20px;
     width: 20px;
@@ -364,7 +425,6 @@
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
-    color: white;
     
     @media (min-width: 1200px) {
       font-size: 15px;

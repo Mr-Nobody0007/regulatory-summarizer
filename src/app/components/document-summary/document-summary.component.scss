@@ -154,29 +154,43 @@
 }
 
 .summary-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 0 0 8px 8px;
+  padding: 16px;
+  
+  .actions-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
   
   .left-actions {
-    display: flex;
-    gap: 16px;
+    display: block;
+    margin-bottom: 12px;
+    
+    &:last-of-type {
+      margin-bottom: 0;
+    }
   }
   
   .right-actions {
-    // No special styling needed, just a container
+    position: absolute;
+    top: 0;
+    right: 0;
   }
   
   .action-button {
     color: rgba(0, 0, 0, 0.7);
     font-weight: normal;
     padding: 6px 12px;
+    text-align: left;
+    justify-content: flex-start;
     
     mat-icon {
-      margin-right: 6px;
+      margin-right: 8px;
       font-size: 18px;
       height: 18px;
       width: 18px;

@@ -388,4 +388,44 @@ provideFeedback(responseId: string): void {
   //   data: { responseId: responseId }
   // });
 }
+
+// Add this method to the DocumentSummaryComponent class
+
+// Add this method to the DocumentSummaryComponent class
+
+// Add this method to the DocumentSummaryComponent class
+
+/**
+ * Opens the PDF document in a new tab
+ * @param documentId The ID of the document to open
+ */
+openPdfDocument(documentId: string): void {
+  if (!this.documentSummary || !this.documentSummary.publicationDate) {
+    console.error('Missing document information required for PDF URL');
+    return;
+  }
+  
+  // Parse the publication date
+  // Assuming publicationDate is in the format "Month DD, YYYY" or "MM/DD/YYYY"
+  const pubDate = new Date(this.documentSummary.publicationDate);
+  
+  // Format as YYYY-MM-DD for the URL
+  const formattedDate = pubDate.getFullYear() + '-' + 
+                       String(pubDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(pubDate.getDate()).padStart(2, '0');
+  
+  // Construct the URL based on the govinfo.gov format
+  // Format: https://www.govinfo.gov/content/pkg/FR-YYYY-MM-DD/pdf/YYYY-NNNNN.pdf
+  const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${formattedDate}/pdf/${documentId}.pdf`;
+  
+  // Fallback URL in case the primary one doesn't work
+  const fallbackUrl = `https://www.federalregister.gov/api/v1/documents/${documentId}/pdf`;
+  
+  // Open in a new tab
+  window.open(pdfUrl, '_blank');
+  
+  // Log for debugging
+  console.log('Opening PDF URL:', pdfUrl);
+  console.log('Fallback URL (if needed):', fallbackUrl);
+}
 }

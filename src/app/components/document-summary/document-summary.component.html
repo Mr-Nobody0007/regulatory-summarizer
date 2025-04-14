@@ -25,7 +25,9 @@
             <h2>({{ documentSummary.id }}) {{ documentSummary.title }}</h2>
             <div class="document-metadata">
               <div class="meta-item">
-                <span class="label">PDF</span>
+                <a href="javascript:void(0)" class="pdf-link" (click)="openPdfDocument(documentSummary.id)">
+                  <span class="label">PDF</span>
+                </a>
                 <span class="meta-bullet">•</span>
                 <span>Published {{ documentSummary.publicationDate }}</span>
                 <span class="meta-bullet">•</span>
@@ -34,7 +36,7 @@
                 <span>Document type: {{ documentSummary.documentType }}</span>
               </div>
               <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
-                {{ showExtendedMetadata ? 'less' : 'more' }}
+                {{ showExtendedMetadata ? 'Less' : 'More' }}
                 <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
               </button>
             </div>
@@ -42,28 +44,28 @@
             <!-- Extended metadata section -->
             <div class="extended-metadata" *ngIf="showExtendedMetadata">
               <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
-                <span class="label">Pages</span>
-                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }}</span>
+                <span class="label">Page:</span>
+                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }} ({{ documentSummary.endPage - documentSummary.startPage + 1 }} pages)</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.cfrReferences && documentSummary.cfrReferences.length > 0">
-                <span class="label">CFR</span>
+                <span class="label">CFR:</span>
                 <span>{{ documentSummary.cfrReferences.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.docketIds && documentSummary.docketIds.length > 0">
-                <span class="label">Docket</span>
+                <span class="label">Docket No:</span>
                 <span>{{ documentSummary.docketIds.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.regulationIdNumbers && documentSummary.regulationIdNumbers.length > 0">
-                <span class="label">RIN</span>
+                <span class="label">RIN:</span>
                 <span>{{ documentSummary.regulationIdNumbers.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.documentNumber">
-                <span class="label">Document No</span>
+                <span class="label">Document No:</span>
                 <span>{{ documentSummary.documentNumber }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
-                <span class="label">Effective Date</span>
-                <span>{{ documentSummary.effectiveDate }}</span>
+                <span class="label">Dates:</span>
+                <span>This final rule is effective {{ documentSummary.effectiveDate }}</span>
               </div>
             </div>
           </div>

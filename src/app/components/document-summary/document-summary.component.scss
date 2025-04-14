@@ -90,10 +90,8 @@
   }
   
   .label {
-    background-color: #e0e0e0;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: 500;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.87);
   }
   
   .meta-bullet {
@@ -104,6 +102,20 @@
     font-size: 14px;
     padding: 0 8px;
     min-width: unset;
+  }
+  
+  .pdf-link {
+    text-decoration: none;
+    cursor: pointer;
+    color: #004aa5;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+    
+    .label {
+      color: #004aa5;
+    }
   }
 }
 
@@ -422,16 +434,18 @@
   margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 20px;
   
   .extended-meta-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
     
     .label {
-      font-weight: 500;
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.6);
+      font-weight: 700;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.87);
     }
     
     span:not(.label) {

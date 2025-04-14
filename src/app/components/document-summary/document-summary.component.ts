@@ -332,4 +332,60 @@ export class DocumentSummaryComponent implements OnInit {
   returnToSearch(): void {
     this.router.navigate(['/']);
   }
+
+  /**
+ * Copy text to clipboard
+ * @param text The text to copy
+ */
+copyText(text: string): void {
+  if (!text) return;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    // You could show a success message or snackbar here
+    console.log('Text copied to clipboard');
+    // If you have Angular Material, you could use a snackbar:
+    // this.snackBar.open('Copied to clipboard', 'Close', { duration: 2000 });
+  }).catch(err => {
+    console.error('Error copying text: ', err);
+  });
+}
+
+/**
+ * Download text as a file
+ * @param text The text content to download
+ * @param filename The name of the file
+ */
+downloadText(text: string, filename: string): void {
+  if (!text) return;
+  
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  
+  // Cleanup
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
+/**
+ * Handle providing feedback
+ * @param responseId The ID of the response to provide feedback for
+ */
+provideFeedback(responseId: string): void {
+  // Implement your feedback collection logic here
+  console.log(`Providing feedback for response: ${responseId}`);
+  // You could open a dialog or modal to collect feedback
+  // Or navigate to a feedback form
+  
+  // Example with MatDialog:
+  // this.dialog.open(FeedbackDialogComponent, {
+  //   width: '400px',
+  //   data: { responseId: responseId }
+  // });
+}
 }

@@ -140,11 +140,10 @@
   }
 }
 
-.summary-actions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-}
+
+
+
+
 
 // Updated answer history styles - ONLY answers in left panel
 .answers-history {
@@ -154,13 +153,49 @@
   margin-top: 16px;
 }
 
-.answer-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.summary-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   
+  .left-actions {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .right-actions {
+    // No special styling needed, just a container
+  }
+  
+  .action-button {
+    color: rgba(0, 0, 0, 0.7);
+    font-weight: normal;
+    padding: 6px 12px;
+    
+    mat-icon {
+      margin-right: 6px;
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+  
+  .feedback-button {
+    color: rgba(0, 0, 0, 0.7);
+    border-color: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-weight: normal;
+  }
+}
+
+// Update the answer card to accommodate the new button layout
+.answer-card {
   .answer {
     display: flex;
-    align-items: flex-start;
     
     .answer-icon {
       color: #004aa5;
@@ -168,16 +203,43 @@
       width: 20px;
       height: 20px;
       margin-right: 12px;
+      flex-shrink: 0;
     }
     
-    p {
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.5;
-      color: rgba(0, 0, 0, 0.87);
+    .answer-content {
+      flex: 1;
+      
+      p {
+        margin: 0 0 16px 0;
+        font-size: 15px;
+        line-height: 1.5;
+        color: rgba(0, 0, 0, 0.87);
+      }
     }
   }
 }
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .summary-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    
+    .left-actions, .right-actions {
+      width: 100%;
+    }
+    
+    .right-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}
+
+
+
+
 
 // Right panel styles
 .prompts-panel {

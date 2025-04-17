@@ -17,7 +17,7 @@
   <!-- Document Summary View -->
   <div *ngIf="documentSummary && !isLoading" class="summary-content">
     <!-- Left Side: Document Info, Summary and Answers ONLY -->
-    <div class="document-panel">
+    <div class="document-panel" #documentPanel>
       <!-- Document Header -->
       <mat-card class="document-header-card">
         <mat-card-content>
@@ -25,9 +25,7 @@
             <h2>({{ documentSummary.id }}) {{ documentSummary.title }}</h2>
             <div class="document-metadata">
               <div class="meta-item">
-                <a href="javascript:void(0)" class="pdf-link" (click)="openPdfDocument(documentSummary.id)">
-                  <span class="label">PDF</span>
-                </a>
+                <span class="label">PDF</span>
                 <span class="meta-bullet">•</span>
                 <span>Published {{ documentSummary.publicationDate }}</span>
                 <span class="meta-bullet">•</span>
@@ -36,7 +34,7 @@
                 <span>Document type: {{ documentSummary.documentType }}</span>
               </div>
               <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
-                {{ showExtendedMetadata ? 'Less' : 'More' }}
+                {{ showExtendedMetadata ? 'less' : 'more' }}
                 <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
               </button>
             </div>
@@ -44,28 +42,28 @@
             <!-- Extended metadata section -->
             <div class="extended-metadata" *ngIf="showExtendedMetadata">
               <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
-                <span class="label">Page:</span>
-                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }} ({{ documentSummary.endPage - documentSummary.startPage + 1 }} pages)</span>
+                <span class="label">Pages</span>
+                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.cfrReferences && documentSummary.cfrReferences.length > 0">
-                <span class="label">CFR:</span>
+                <span class="label">CFR</span>
                 <span>{{ documentSummary.cfrReferences.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.docketIds && documentSummary.docketIds.length > 0">
-                <span class="label">Docket No:</span>
+                <span class="label">Docket</span>
                 <span>{{ documentSummary.docketIds.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.regulationIdNumbers && documentSummary.regulationIdNumbers.length > 0">
-                <span class="label">RIN:</span>
+                <span class="label">RIN</span>
                 <span>{{ documentSummary.regulationIdNumbers.join(', ') }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.documentNumber">
-                <span class="label">Document No:</span>
+                <span class="label">Document No</span>
                 <span>{{ documentSummary.documentNumber }}</span>
               </div>
               <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
-                <span class="label">Dates:</span>
-                <span>This final rule is effective {{ documentSummary.effectiveDate }}</span>
+                <span class="label">Effective Date</span>
+                <span>{{ documentSummary.effectiveDate }}</span>
               </div>
             </div>
           </div>
@@ -80,38 +78,9 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- AI Summary Content -->
-      <!-- <mat-card class="summary-card">
-        <mat-card-content>
-          <div class="summary-text">
-            {{ documentSummary.summary }}
-          </div>
-          <div class="summary-actions">
-            <div class="left-actions">
-              <button mat-button class="action-button">
-                <mat-icon>content_copy</mat-icon>
-                Copy
-              </button>
-            </div>
-            <div class="left-actions">
-              <button mat-button class="action-button">
-                <mat-icon>download</mat-icon>
-                Download
-              </button>
-            </div>
-            <div class="right-actions">
-              <button mat-stroked-button class="feedback-button">
-                Feedback
-              </button>
-            </div>
-          </div>
-          
-        </mat-card-content>
-      </mat-card> -->
-
       <!-- ONLY Answers in the left panel -->
-      <div class="answers-history">
-        <mat-card *ngFor="let response of promptResponses" class="answer-card">
+      <div class="answers-history" #answersHistory>
+        <mat-card *ngFor="let response of promptResponses" class="answer-card" [class.highlighted-answer]="response.isActive">
           <mat-card-content>
             <div class="answer">
               <mat-icon class="answer-icon">auto_awesome</mat-icon>
@@ -157,19 +126,19 @@
       <!-- Predefined Prompts with "More suggestions" option -->
       <div class="predefined-prompts">
         <!-- Show initial set of prompts -->
-        <div *ngFor="let prompt of visiblePrompts" class="prompt-card" (click)="askQuestion(prompt)">
+        <div *ngFor="let promptLabel of visiblePrompts" class="prompt-card" (click)="askQuestion(promptLabel)">
           <mat-icon class="prompt-icon">auto_awesome</mat-icon>
-          <p>{{ prompt }}</p>
+          <p>{{ promptLabel }}</p>
         </div>
         
         <!-- More suggestions button - only show if there are more prompts -->
         <div *ngIf="predefinedPrompts.length > initialPromptCount" 
-             class="more-suggestions-card"
-             (click)="toggleShowAllPrompts()">
-          <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
-          <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
-        </div>
-      </div>
+          class="more-suggestions-card"
+          (click)="toggleShowAllPrompts()">
+       <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
+       <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
+     </div>
+   </div>
 
       <!-- QUESTIONS ASKED BY USER - Active one appears as dark blue, others lighter -->
       <div class="asked-questions">

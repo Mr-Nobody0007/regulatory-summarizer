@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { RegulatoryService } from '../../services/regulatory.service';
 import { Subject, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
+import { PromptService, Prompt } from '../../services/prompt.service';
 
 // Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -61,6 +62,7 @@ export interface SearchResult {
 export class HomeComponent implements OnDestroy {
   selectedInputMethod: InputMethod = 'search';
   currentDocument: DocumentContext | null = null;
+  selectedPrompt: Prompt | null = null;
   
   // Search related properties
   searchControl = new FormControl('');
@@ -80,6 +82,7 @@ export class HomeComponent implements OnDestroy {
   constructor(
     private fb: FormBuilder,
     private regulatoryService: RegulatoryService,
+    private promptService: PromptService,
     private router: Router,
     private cdr: ChangeDetectorRef, // Added ChangeDetectorRef
     private documentDataService: DocumentDataService
@@ -94,6 +97,26 @@ export class HomeComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  selectDocument(document: SearchResult): void {
+    this.selectedDocument = document;
+    this.showSearchResults = false;
+    
+    this.currentDocument = {
+      id: document.id,
+      title: document.title,
+      sourceType: 'search',
+      selected: true
+    };
+    
+    // Store the selected document in the service
+    this.documentDataService.setSelectedDocument(document);
+    
+    // Load the default summary prompt based on document type
+    this.loadDefaultPrompt(document.documentType);
+    
+    this.cdr.detectChanges(); // Force change detection
   }
 
   selectInputMethod(method: InputMethod): void {
@@ -161,25 +184,49 @@ handleClickOutside(event: MouseEvent) {
     });
   }
 
-  selectDocument(document: SearchResult): void {
-    this.selectedDocument = document;
-    this.showSearchResults = false;
+  // selectDocument(document: SearchResult): void {
+  //   this.selectedDocument = document;
+  //   this.showSearchResults = false;
     
-    this.currentDocument = {
-      id: document.id,
-      title: document.title,
-      sourceType: 'search',
-      selected: true
-    };
+  //   this.currentDocument = {
+  //     id: document.id,
+  //     title: document.title,
+  //     sourceType: 'search',
+  //     selected: true
+  //   };
     
-    // Store the selected document in the service
-    this.documentDataService.setSelectedDocument(document);
+  //   // Store the selected document in the service
+  //   this.documentDataService.setSelectedDocument(document);
     
-    this.cdr.detectChanges(); // Force change detection
+  //   this.cdr.detectChanges(); // Force change detection
+  // }
+
+  private loadDefaultPrompt(documentType: string): void {
+    this.promptService.getDefaultSummaryPrompt(documentType).subscribe(prompt => {
+      this.selectedPrompt = prompt;
+      
+      // Store the selected prompt in the service for use in document-summary
+      if (prompt) {
+        this.documentDataService.setSelectedPrompt(prompt);
+      }
+      
+      this.cdr.detectChanges();
+    });
   }
-
-  
-
+  summarizeDocument(): void {
+    if (this.currentDocument) {
+      if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
+        // Pass the selected prompt ID to the router if available
+        const promptParam = this.selectedPrompt ? { promptId: this.selectedPrompt.prompt } : {};
+        this.router.navigate(['/document', this.currentDocument.id], { queryParams: promptParam });
+      } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
+        // Encode the URL to make it safe for navigation
+        const encodedUrl = encodeURIComponent(this.currentDocument.url);
+        const promptParam = this.selectedPrompt ? { promptId: this.selectedPrompt.prompt } : {};
+        this.router.navigate(['/document', encodedUrl, 'true'], { queryParams: promptParam });
+      }
+    }
+  }
   clearDocumentSelection(): void {
     this.selectedDocument = null;
     this.currentDocument = null;
@@ -223,17 +270,17 @@ handleClickOutside(event: MouseEvent) {
     this.cdr.detectChanges(); // Force change detection
   }
 
-  summarizeDocument(): void {
-    if (this.currentDocument) {
-      if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
-        this.router.navigate(['/document', this.currentDocument.id]);
-      } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
-        // Encode the URL to make it safe for navigation
-        const encodedUrl = encodeURIComponent(this.currentDocument.url);
-        this.router.navigate(['/document', encodedUrl, 'true']);
-      }
-    }
-  }
+  // summarizeDocument(): void {
+  //   if (this.currentDocument) {
+  //     if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
+  //       this.router.navigate(['/document', this.currentDocument.id]);
+  //     } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
+  //       // Encode the URL to make it safe for navigation
+  //       const encodedUrl = encodeURIComponent(this.currentDocument.url);
+  //       this.router.navigate(['/document', encodedUrl, 'true']);
+  //     }
+  //   }
+  // }
 
   get canSummarize(): boolean {
     return !!this.currentDocument?.selected;

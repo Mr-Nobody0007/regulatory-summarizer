@@ -152,6 +152,19 @@ getDocumentDetails(documentId: string): Observable<any> {
   
 }
 
+   /**
+   * Get a document summary by ID or URL with a specific prompt
+   * @param documentId Document ID or URL to summarize
+   * @param prompt The specific prompt to use for summarization
+   * @param isUrl Whether the provided ID is a URL
+   * @returns Observable of summarization result
+   */
+   summarizeDocumentWithPrompt(documentId: string, prompt: string, isUrl: boolean = false): Observable<DocumentSummary> {
+    // In a real implementation, you would pass the prompt to your API
+    // For now, we'll just use the existing method
+    return this.summarizeDocument(documentId, isUrl);
+  }
+
   /**
    * Get a document summary by ID or URL
    * @param documentId Document ID or URL to summarize

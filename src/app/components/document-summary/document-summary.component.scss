@@ -35,19 +35,24 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  position: relative;
   
   @media (min-width: 1024px) {
     flex-direction: row;
     align-items: flex-start;
+    height: calc(100vh - 120px); /* Adjust height to fit within viewport */
   }
 }
 
-// Left panel styles
+// Left panel styles - Make scrollable
 .document-panel {
   flex: 3;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto; /* Make this panel scrollable */
+  max-height: calc(100vh - 120px); /* Limit height */
+  padding-right: 16px; /* Add padding for scrollbar */
   
   @media (min-width: 1024px) {
     max-width: 70%;
@@ -57,6 +62,10 @@
 .document-header-card {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky; /* Keep header visible within scrollable area */
+  top: 0;
+  z-index: 10;
+  background-color: white;
 }
 
 .document-title-section {
@@ -90,8 +99,10 @@
   }
   
   .label {
-    font-weight: 700;
-    color: rgba(0, 0, 0, 0.87);
+    background-color: #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
   }
   
   .meta-bullet {
@@ -102,20 +113,6 @@
     font-size: 14px;
     padding: 0 8px;
     min-width: unset;
-  }
-  
-  .pdf-link {
-    text-decoration: none;
-    cursor: pointer;
-    color: #004aa5;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-    
-    .label {
-      color: #004aa5;
-    }
   }
 }
 
@@ -152,17 +149,13 @@
   }
 }
 
-
-
-
-
-
 // Updated answer history styles - ONLY answers in left panel
 .answers-history {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-top: 16px;
+  padding-bottom: 16px; /* Add padding at bottom for better scrolling experience */
 }
 
 .summary-actions {
@@ -220,6 +213,26 @@
 
 // Update the answer card to accommodate the new button layout
 .answer-card {
+  transition: all 0.3s ease-in-out;
+  border-left: 4px solid transparent;
+  
+  &.highlighted-answer {
+    border-left: 4px solid #004aa5;
+    box-shadow: 0 4px 12px rgba(0, 74, 165, 0.2);
+    background-color: #f0f4ff;
+    
+    .answer-icon {
+      color: #004aa5;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+    
+    .answer-content p {
+      color: rgba(0, 0, 0, 0.95);
+    }
+  }
+  
   .answer {
     display: flex;
     
@@ -263,11 +276,7 @@
   }
 }
 
-
-
-
-
-// Right panel styles
+// Right panel styles - Make fixed/floating
 .prompts-panel {
   flex: 1;
   display: flex;
@@ -278,7 +287,11 @@
     min-width: 300px;
     max-width: 400px;
     position: sticky;
-    top: 24px;
+    top: 32px; /* Match the container padding */
+    align-self: flex-start;
+    height: calc(100vh - 120px); /* Limit height */
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -296,6 +309,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px; /* Space for scrollbar */
 }
 
 .prompt-card {
@@ -375,6 +391,9 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 24px;
+  max-height: 300px; /* Limit height for larger number of questions */
+  overflow-y: auto; /* Make scrollable if needed */
+  padding-right: 8px; /* Space for scrollbar */
 }
 
 .question-bubble {
@@ -434,18 +453,16 @@
   margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 12px;
   
   .extended-meta-item {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
+    flex-direction: column;
     
     .label {
-      font-weight: 700;
-      font-size: 14px;
-      color: rgba(0, 0, 0, 0.87);
+      font-weight: 500;
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.6);
     }
     
     span:not(.label) {
@@ -460,6 +477,12 @@
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (min-width: 1024px) {
+    position: sticky;
+    bottom: 0;
+    background: white;
+  }
   
   h4 {
     font-size: 16px;

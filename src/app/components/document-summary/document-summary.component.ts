@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,10 +11,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { RegulatoryService } from '../../services/regulatory.service';
-import { finalize } from 'rxjs';
+import { finalize, Observable, of } from 'rxjs';
 import { DocumentDataService } from '../../services/document-data.service';
-// Update the DocumentSummary interface in document-summary.component.ts
-
+import { PromptService, Prompt } from '../../services/prompt.service';
 
 
 // In document-summary.component.ts
@@ -61,11 +60,64 @@ export interface PromptResponse {
   templateUrl: './document-summary.component.html',
   styleUrls: ['./document-summary.component.scss']
 })
-export class DocumentSummaryComponent implements OnInit {
+export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
+  @ViewChild('answersHistory') answersHistoryElement!: ElementRef;
+  @ViewChild('documentPanel') documentPanelElement!: ElementRef;
+  @ViewChild('askedQuestions') askedQuestionsElement!: ElementRef;
+  
   documentSummary: DocumentSummary | null = null;
   isLoading = true;
   showExtendedMetadata = false;
   error: string | null = null;
+prompts  : Prompt[] = [{
+    "purpose": "Summary",
+    "isDefault": true,
+    "label": "Provide a concise summary",
+    "prompt": "Provide a concise summary of this document highlighting the key points, requirements, and implications.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Summary",
+    "isDefault": false,
+    "label": "Summarize regulatory requirements",
+    "prompt": "Identify and summarize the main regulatory requirements or obligations outlined in this document.",
+    "documentType": "Rule"
+  },
+  {
+    "purpose": "Analysis",
+    "isDefault": false,
+    "label": "Explain the compliance timeline",
+    "prompt": "Explain the timeline for compliance with this regulation, including any phased implementation periods.",
+    "documentType": "Rule"
+  },
+  {
+    "purpose": "Analysis",
+    "isDefault": false,
+    "label": "Analyze proposed changes",
+    "prompt": "Analyze the key changes being proposed in this document compared to existing regulations.",
+    "documentType": "Proposed Rule"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How does this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Clarification",
+    "isDefault": false,
+    "label": "Explain comment submission process",
+    "prompt": "Explain the process for submitting comments on this proposed rule, including deadlines and submission methods.",
+    "documentType": "Proposed Rule"
+  },
+  {
+    "purpose": "Analysis",
+    "isDefault": false,
+    "label": "Identify key deadlines",
+    "prompt": "Identify all important deadlines, effective dates, and compliance dates mentioned in this document.",
+    "documentType": "ANY"
+  }];
   
   // For handling the Q&A
   questionControl = new FormControl('', [Validators.required]);
@@ -74,46 +126,50 @@ export class DocumentSummaryComponent implements OnInit {
   // Default summary prompt - to be shown as the first question
   defaultSummaryPrompt = 'Provide a concise summary of this document';
   
+  // Flags to track if we need to scroll to bottom
+  private shouldScrollToBottom = false;
+  private shouldScrollQuestionsToBottom = false;
+  
   // Predefined prompts grouped by document type
-  predefinedPromptsByType: Record<string, string[]> = {
-    // Default prompts for all document types
-    'default': [
-      'When was it last updated?',
-      'Summarize it in a different way',
-      'Search for another document'
-    ],
+  // predefinedPromptsByType: Record<string, string[]> = {
+  //   // Default prompts for all document types
+  //   'default': [
+  //     'When was it last updated?',
+  //     'Summarize it in a different way',
+  //     'Search for another document'
+  //   ],
     
-    // Specific prompts for different document types
-    'Notice': [
-      'When does this notice take effect?',
-      'What actions are required based on this notice?',
-      'Are there any deadlines I should be aware of?',
-      'Does this notice supersede any previous notices?'
-    ],
+  //   // Specific prompts for different document types
+  //   'Notice': [
+  //     'When does this notice take effect?',
+  //     'What actions are required based on this notice?',
+  //     'Are there any deadlines I should be aware of?',
+  //     'Does this notice supersede any previous notices?'
+  //   ],
     
-    'Rule': [
-      'What are the key compliance requirements in this rule?',
-      'When does this rule take effect?',
-      'What penalties apply for non-compliance?',
-      'How does this rule apply to small businesses?',
-      'What reporting requirements does this rule establish?'
-    ],
+  //   'Rule': [
+  //     'What are the key compliance requirements in this rule?',
+  //     'When does this rule take effect?',
+  //     'What penalties apply for non-compliance?',
+  //     'How does this rule apply to small businesses?',
+  //     'What reporting requirements does this rule establish?'
+  //   ],
     
-    'Proposed Rule': [
-      'What changes are being proposed?',
-      'How does this differ from the current regulation?',
-      'When is the comment period deadline?',
-      'How can I submit comments on this proposal?',
-      'What is the expected implementation timeline?'
-    ],
+  //   'Proposed Rule': [
+  //     'What changes are being proposed?',
+  //     'How does this differ from the current regulation?',
+  //     'When is the comment period deadline?',
+  //     'How can I submit comments on this proposal?',
+  //     'What is the expected implementation timeline?'
+  //   ],
     
-    'Order': [
-      'Who is affected by this order?',
-      'What are the main directives in this order?',
-      'What is the timeframe for compliance?',
-      'Are there any exemptions to this order?'
-    ]
-  };
+  //   'Order': [
+  //     'Who is affected by this order?',
+  //     'What are the main directives in this order?',
+  //     'What is the timeframe for compliance?',
+  //     'Are there any exemptions to this order?'
+  //   ]
+  // };
   
   // Active list of predefined prompts - will be set based on document type
   predefinedPrompts: string[] = [];
@@ -126,9 +182,10 @@ export class DocumentSummaryComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private regulatoryService: RegulatoryService,
-    private documentDataService: DocumentDataService, // Add this line
+    private documentDataService: DocumentDataService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private promptService: PromptService
   ) {}
 
   ngOnInit(): void {
@@ -137,73 +194,177 @@ export class DocumentSummaryComponent implements OnInit {
       const documentId = params.get('id');
       const isUrl = params.get('isUrl') === 'true';
       
-      if (documentId) {
-        this.loadDocumentSummary(documentId, isUrl);
-      } else {
+      if (documentId) { this.route.queryParams.subscribe(queryParams => {
+        const initialPrompt = queryParams['promptId'];
+        this.loadDocumentSummary(documentId, isUrl, initialPrompt);
+      });} else {
         this.error = 'No document specified';
         this.isLoading = false;
         this.cdr.detectChanges(); // Force change detection
       }
     });
   }
+  
+  ngAfterViewChecked() {
+    // If the flag is set, scroll to the bottom of document panel
+    if (this.shouldScrollToBottom && this.documentPanelElement) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
+    
+    // If the flag is set, scroll to the bottom of questions panel
+    if (this.shouldScrollQuestionsToBottom && this.askedQuestionsElement) {
+      this.scrollQuestionsToBottom();
+      this.shouldScrollQuestionsToBottom = false;
+    }
+  }
+  
+  // Helper method to scroll to bottom of answers history
+  private scrollToBottom(): void {
+    try {
+      setTimeout(() => {
+        // Use setTimeout to ensure the DOM has been updated
+        if (this.documentPanelElement && this.documentPanelElement.nativeElement) {
+          const element = this.documentPanelElement.nativeElement;
+          element.scrollTop = element.scrollHeight + 1000; // Add extra to ensure it goes all the way
+        }
+      }, 10);
+    } catch (err) {
+      console.error('Error scrolling document panel to bottom', err);
+    }
+  }
+  
+  // Helper method to scroll to bottom of questions
+  private scrollQuestionsToBottom(): void {
+    try {
+      setTimeout(() => {
+        // Use setTimeout to ensure the DOM has been updated
+        if (this.askedQuestionsElement && this.askedQuestionsElement.nativeElement) {
+          const element = this.askedQuestionsElement.nativeElement;
+          element.scrollTop = element.scrollHeight + 1000; // Add extra to ensure it goes all the way
+        }
+      }, 10);
+    } catch (err) {
+      console.error('Error scrolling questions to bottom', err);
+    }
+  }
 
-  private loadDocumentSummary(documentId: string, isUrl: boolean): void {
+  loadPrompts(): Observable<Prompt[]> {
+    // Simply return the hardcoded prompts
+    return of(this.prompts);
+  }
+
+  private loadDocumentSummary(documentId: string, isUrl: boolean, initialPrompt?: string): void {
     this.isLoading = true;
     this.error = null;
     this.cdr.detectChanges(); // Force change detection on loading state
     
-    this.regulatoryService.summarizeDocument(documentId, isUrl)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-          this.cdr.detectChanges(); // Force change detection when loading completes
-        })
-      )
-      .subscribe({
-        next: (summary) => {
-          this.documentSummary = summary;
-          
-          // Set up predefined prompts based on document type
-          this.setupPredefinedPrompts(summary.documentType);
-          
-          // Add the default summary prompt as the first question
-          // with the summary that was just loaded as the answer
-          this.addDefaultSummaryPrompt(summary.summary);
-          
-          this.cdr.detectChanges(); // Force change detection
-        },
-        error: (err) => {
-          console.error('Error loading document summary', err);
-          this.error = 'Failed to load document summary. Please try again.';
-          this.cdr.detectChanges(); // Force change detection
-        }
-      });
+    // If there's an initial prompt from router params, use it directly
+    if (initialPrompt) {
+      this.regulatoryService.summarizeDocumentWithPrompt(documentId, initialPrompt, isUrl)
+        .pipe(
+          finalize(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          })
+        )
+        .subscribe({
+          next: (summary) => {
+            this.documentSummary = summary;
+            
+            // Load prompts based on document type
+            this.loadPromptsForDocumentType(summary.documentType);
+            
+            // Add the default summary prompt as the first question
+            // with the summary that was just loaded as the answer
+            this.addDefaultSummaryPrompt(summary.summary, initialPrompt);
+            
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading document summary', err);
+            this.error = 'Failed to load document summary. Please try again.';
+            this.cdr.detectChanges();
+          }
+        });
+    } else {
+      // Original flow without a specific prompt
+      this.regulatoryService.summarizeDocument(documentId, isUrl)
+        .pipe(
+          finalize(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          })
+        )
+        .subscribe({
+          next: (summary) => {
+            this.documentSummary = summary;
+            
+            // Load prompts based on document type
+            this.loadPromptsForDocumentType(summary.documentType);
+            
+            // Check if we have a selected prompt from the service
+            const selectedPrompt = this.documentDataService.getSelectedPrompt();
+            
+            // Add the default summary with either the selected prompt or fallback
+            this.addDefaultSummaryPrompt(
+              summary.summary, 
+              selectedPrompt ? selectedPrompt.label : this.defaultSummaryPrompt
+            );
+            
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading document summary', err);
+            this.error = 'Failed to load document summary. Please try again.';
+            this.cdr.detectChanges();
+          }
+        });
+    }
   }
+
+  /**
+   * Load prompts for a specific document type
+   */
+  private loadPromptsForDocumentType(documentType: string): void {
+    this.promptService.getPromptsByDocumentType(documentType).subscribe(prompts => {
+      this.prompts = prompts;
+      
+      // Update the predefined prompts with the loaded prompt labels
+      this.predefinedPrompts = prompts.map(p => p.label);
+      
+      // Reset the show all prompts flag
+      this.showAllPrompts = false;
+      
+      this.cdr.detectChanges();
+    });
+  }
+
 
   /**
    * Set up the predefined prompts based on document type
    */
-  private setupPredefinedPrompts(documentType: string): void {
-    // Start with default prompts
-    let prompts = [...this.predefinedPromptsByType['default']];
+  // private setupPredefinedPrompts(documentType: string): void {
+  //   // Start with default prompts
+  //   let prompts = [...this.predefinedPromptsByType['default']];
     
-    // Add document-type specific prompts if available
-    if (documentType && this.predefinedPromptsByType[documentType]) {
-      prompts = prompts.concat(this.predefinedPromptsByType[documentType]);
-    }
+  //   // Add document-type specific prompts if available
+  //   if (documentType && this.predefinedPromptsByType[documentType]) {
+  //     prompts = prompts.concat(this.predefinedPromptsByType[documentType]);
+  //   }
     
-    // Add a common context-specific prompt
-    prompts.push(`Provide a concise summary of the key requirements and obligations outlined in this ${documentType.toLowerCase()} using approximately 500 words`);
+  //   // Add a common context-specific prompt
+  //   prompts.push(`Provide a concise summary of the key requirements and obligations outlined in this ${documentType.toLowerCase()} using approximately 500 words`);
     
-    // Add a geographically relevant prompt
-    prompts.push(`Does this ${documentType.toLowerCase()} apply in New York?`);
+  //   // Add a geographically relevant prompt
+  //   prompts.push(`Does this ${documentType.toLowerCase()} apply in New York?`);
     
-    // Set the prompts
-    this.predefinedPrompts = prompts;
+  //   // Set the prompts
+  //   this.predefinedPrompts = prompts;
     
-    // Reset the show all prompts flag
-    this.showAllPrompts = false;
-  }
+  //   // Reset the show all prompts flag
+  //   this.showAllPrompts = false;
+  // }
   
   selectQuestion(selectedResponseId: string): void {
     // Set the selected question as active and deactivate others
@@ -211,15 +372,20 @@ export class DocumentSummaryComponent implements OnInit {
       ...pr,
       isActive: pr.id === selectedResponseId
     }));
+    
+    // Set the flags to scroll both panels
+    this.shouldScrollToBottom = true;
+    this.shouldScrollQuestionsToBottom = true;
+    this.shouldScrollQuestionsToBottom = true;
     this.cdr.detectChanges(); // Force change detection
   }
 
   // Add a new method to handle the default summary prompt
-  private addDefaultSummaryPrompt(summaryText: string): void {
+  private addDefaultSummaryPrompt(summaryText: string, questionText: string = this.defaultSummaryPrompt): void {
     // Create a prompt response for the default summary
     const defaultPromptResponse: PromptResponse = {
       id: `default-summary-${Date.now()}`,
-      question: this.defaultSummaryPrompt,
+      question: questionText,
       answer: summaryText,
       timestamp: new Date(),
       isActive: true // Mark as active initially
@@ -227,6 +393,7 @@ export class DocumentSummaryComponent implements OnInit {
     
     // Add it to the beginning of the prompt responses array
     this.promptResponses = [defaultPromptResponse];
+    this.shouldScrollToBottom = true;
     this.cdr.detectChanges(); // Force change detection
   }
 
@@ -234,7 +401,6 @@ export class DocumentSummaryComponent implements OnInit {
     this.showExtendedMetadata = !this.showExtendedMetadata;
   }
   
-  // Added method to select a previously asked question
   /**
    * Toggle between showing all prompts or just the initial set
    */
@@ -254,9 +420,26 @@ export class DocumentSummaryComponent implements OnInit {
     }
   }
 
-  askQuestion(question: string = ''): void {
+  askQuestion(labelOrPrompt: string = ''): void {
+    // If it's a prompt label from our predefined list, get the full prompt text
+    let promptText = labelOrPrompt;
+    
+    // If the input is a label from our prompts, get the full prompt text
+    if (labelOrPrompt && this.prompts.length > 0) {
+      const matchingPrompt = this.prompts.find(p => p.label === labelOrPrompt);
+      if (matchingPrompt) {
+        promptText = matchingPrompt.prompt;
+        
+        // Populate the question control with the full prompt text
+        this.questionControl.setValue(promptText);
+        
+        // Don't send the request yet - let user review and submit
+        return;
+      }
+    }
+    
     // If no question provided, use the one from the form
-    const questionText = question || this.questionControl.value;
+    const questionText = promptText || this.questionControl.value;
     
     if (!questionText) {
       return;
@@ -287,7 +470,7 @@ export class DocumentSummaryComponent implements OnInit {
     this.cdr.detectChanges(); // Force change detection
     
     // Clear the input if using the form
-    if (!question) {
+    if (!labelOrPrompt) {
       this.questionControl.reset();
     }
     
@@ -387,45 +570,5 @@ provideFeedback(responseId: string): void {
   //   width: '400px',
   //   data: { responseId: responseId }
   // });
-}
-
-// Add this method to the DocumentSummaryComponent class
-
-// Add this method to the DocumentSummaryComponent class
-
-// Add this method to the DocumentSummaryComponent class
-
-/**
- * Opens the PDF document in a new tab
- * @param documentId The ID of the document to open
- */
-openPdfDocument(documentId: string): void {
-  if (!this.documentSummary || !this.documentSummary.publicationDate) {
-    console.error('Missing document information required for PDF URL');
-    return;
-  }
-  
-  // Parse the publication date
-  // Assuming publicationDate is in the format "Month DD, YYYY" or "MM/DD/YYYY"
-  const pubDate = new Date(this.documentSummary.publicationDate);
-  
-  // Format as YYYY-MM-DD for the URL
-  const formattedDate = pubDate.getFullYear() + '-' + 
-                       String(pubDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                       String(pubDate.getDate()).padStart(2, '0');
-  
-  // Construct the URL based on the govinfo.gov format
-  // Format: https://www.govinfo.gov/content/pkg/FR-YYYY-MM-DD/pdf/YYYY-NNNNN.pdf
-  const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${formattedDate}/pdf/${documentId}.pdf`;
-  
-  // Fallback URL in case the primary one doesn't work
-  const fallbackUrl = `https://www.federalregister.gov/api/v1/documents/${documentId}/pdf`;
-  
-  // Open in a new tab
-  window.open(pdfUrl, '_blank');
-  
-  // Log for debugging
-  console.log('Opening PDF URL:', pdfUrl);
-  console.log('Fallback URL (if needed):', fallbackUrl);
 }
 }

@@ -373,6 +373,24 @@
     }
   }
 
+  .selected-prompt {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #f0f4ff;
+    border-radius: 8px;
+    
+    .prompt-label {
+      font-weight: 500;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    
+    .prompt-text {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+  }
+
   .url-actions {
     display: flex;
     justify-content: flex-end;

@@ -40,7 +40,7 @@ export class PromptService {
     "documentType": "Rule"
   },
   {
-    "purpose": "Analysis",
+    "purpose": "Summary",
     "isDefault": false,
     "label": "Analyze proposed changes",
     "prompt": "Analyze the key changes being proposed in this document compared to existing regulations.",
@@ -65,7 +65,7 @@ export class PromptService {
     "isDefault": false,
     "label": "Identify key deadlines",
     "prompt": "Identify all important deadlines, effective dates, and compliance dates mentioned in this document.",
-    "documentType": "ANY"
+    "documentType": "Notice"
   }];
 
   constructor(private http: HttpClient) {}
@@ -86,8 +86,12 @@ export class PromptService {
   getPromptsByDocumentType(documentType: string): Observable<Prompt[]> {
     console.log('Filtering prompts for document type:', documentType);
     
+    if (!documentType) {
+      return of([]);
+    }
+    
     // Normalize document type to handle case differences
-    const normalizedType = documentType?.trim().toLowerCase() || '';
+    const normalizedType = documentType.trim().toLowerCase();
     
     // Filter prompts that match the document type (case-insensitive) or are for ANY type
     const filteredPrompts = this.prompts.filter(p => {
@@ -106,17 +110,23 @@ export class PromptService {
    * @param documentType The document type
    */
   getDefaultSummaryPrompt(documentType: string): Observable<Prompt | null> {
+    if (!documentType) {
+      return of(null);
+    }
+    
     return this.getPromptsByDocumentType(documentType).pipe(
-      map(prompts => {
-        // First try to find a Summary prompt for this document type
+      map((prompts: Prompt[]) => {
+        // First try to find a Summary prompt for this specific document type (case-insensitive)
         let summaryPrompt = prompts.find(p => 
-          p.purpose === 'Summary' && p.documentType === documentType
+          p.purpose === 'Summary' && 
+          p.documentType.toLowerCase() === documentType.toLowerCase()
         );
         
         // If not found, look for a Summary prompt for ANY document type
         if (!summaryPrompt) {
           summaryPrompt = prompts.find(p => 
-            p.purpose === 'Summary' && p.documentType === 'ANY'
+            p.purpose === 'Summary' && 
+            p.documentType.toLowerCase() === 'any'
           );
         }
         
@@ -125,6 +135,7 @@ export class PromptService {
           summaryPrompt = prompts.find(p => p.isDefault);
         }
         
+        console.log('Selected prompt for document type:', documentType, summaryPrompt);
         return summaryPrompt || null;
       })
     );

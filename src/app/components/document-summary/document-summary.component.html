@@ -159,7 +159,7 @@
     <!-- Show initial set of prompts -->
     <div *ngFor="let prompt of visiblePrompts" class="prompt-card" (click)="askQuestion(prompt.label)">
       <mat-icon class="prompt-icon">auto_awesome</mat-icon>
-      <p>{{ prompt }}</p>
+      <p>{{ prompt.label }}</p>
     </div>
     
     <!-- More suggestions button - only show if there are more prompts -->

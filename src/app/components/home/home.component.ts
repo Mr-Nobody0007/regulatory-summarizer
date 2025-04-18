@@ -235,7 +235,7 @@ export class HomeComponent implements OnDestroy {
     this.selectedDocument = document;
     this.showSearchResults = false;
     
-    this.searchControl.setValue(`(${document.id}) (${document.title})`, { emitEvent: false });
+    this.searchControl.setValue(`(${document.id}) ${document.title}`, { emitEvent: false });
     
     this.currentDocument = {
       id: document.id,
@@ -254,6 +254,9 @@ export class HomeComponent implements OnDestroy {
           this.selectedPrompt = prompt;
           // Also store it in the service for later use
           this.documentDataService.setSelectedPrompt(prompt);
+          console.log('Selected default prompt:', prompt);
+        } else {
+          console.warn('No matching prompts found for document type:', document.documentType);
         }
         this.cdr.detectChanges();
       });
@@ -380,8 +383,11 @@ export class HomeComponent implements OnDestroy {
 
   summarizeDocument(): void {
     if (this.currentDocument) {
+      // Get the selected prompt or use a default
       const promptText = this.selectedPrompt?.prompt || 
         'Provide a concise summary of this document highlighting key points.';
+      
+      console.log('Using prompt for summarization:', promptText);
       
       if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
         // Pass the document ID and prompt to the router navigation

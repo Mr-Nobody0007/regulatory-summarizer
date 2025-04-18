@@ -1,0 +1,46 @@
+<div class="dialog-container">
+    <div class="dialog-header">
+      <h2>AI Parameters</h2>
+      <button mat-icon-button mat-dialog-close>
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="dialog-content">
+      <div class="parameter-row">
+        <div class="parameter-label">
+          Temperature: 
+          <mat-icon matTooltip="Controls the randomness of responses. Lower values make responses more focused and deterministic, while higher values make responses more creative and diverse.">info</mat-icon>
+        </div>
+        <mat-slider class="parameter-slider" min="0" max="1" step="0.01" [displayWith]="formatNumber">
+          <input matSliderThumb [(ngModel)]="parameters.temperature">
+        </mat-slider>
+      </div>
+      
+      <div class="parameter-row">
+        <div class="parameter-label">
+          Nucleus Sampling: 
+          <mat-icon matTooltip="Controls the size of the probability mass to sample from. Lower values make generation more focused on likely tokens, while higher values incorporate more diverse tokens.">info</mat-icon>
+        </div>
+        <mat-slider class="parameter-slider" min="0" max="1" step="0.01" [displayWith]="formatNumber">
+          <input matSliderThumb [(ngModel)]="parameters.nucleusSampling">
+        </mat-slider>
+      </div>
+      
+      <div class="parameter-row">
+        <div class="parameter-label">
+          Seed 
+          <mat-icon matTooltip="Optional. Set a specific seed for deterministic generation. Leave empty for random results.">info</mat-icon>
+        </div>
+        <mat-form-field class="seed-field">
+          <input matInput [(ngModel)]="parameters.seed" placeholder="Random">
+        </mat-form-field>
+      </div>
+    </div>
+    
+    <div class="dialog-actions">
+      <button mat-button mat-dialog-close>Close</button>
+      <button mat-raised-button color="primary" [mat-dialog-close]="parameters">Save changes</button>
+    </div>
+  </div>
+

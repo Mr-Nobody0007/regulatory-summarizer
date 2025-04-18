@@ -1,0 +1,64 @@
+.dialog-container {
+    padding: 0;
+    width: 500px;
+    max-width: 100%;
+    background-color: white;
+    border-radius: 8px;
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .dialog-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .dialog-content {
+    padding: 24px;
+  }
+
+  .parameter-row {
+    margin-bottom: 32px;
+  }
+
+  .parameter-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .parameter-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .parameter-label mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-left: 6px;
+    color: rgba(0, 0, 0, 0.54);
+  }
+
+  .parameter-slider {
+    width: 100%;
+  }
+
+  .seed-field {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 24px 24px 24px;
+    gap: 8px;
+  }

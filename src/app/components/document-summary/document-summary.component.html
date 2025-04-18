@@ -2,7 +2,12 @@
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
-    <p>Loading document summary...</p>
+    <p *ngIf="!isApiProcessing">Loading document summary...</p>
+    
+    <!-- Multi-step API process loading indicators -->
+    <div *ngIf="isApiProcessing" class="api-process-loading">
+      <p class="loading-message">Processing document summary...</p>
+    </div>
   </div>
 
   <!-- Error State -->
@@ -14,73 +19,96 @@
     </button>
   </div>
 
-  <!-- Document Summary View -->
-  <div *ngIf="documentSummary && !isLoading" class="summary-content">
-    <!-- Left Side: Document Info, Summary and Answers ONLY -->
-    <div class="document-panel" #documentPanel>
-      <!-- Document Header -->
-      <mat-card class="document-header-card">
-        <mat-card-content>
-          <div class="document-title-section">
-            <h2>({{ documentSummary.id }}) {{ documentSummary.title }}</h2>
-            <div class="document-metadata">
-              <div class="meta-item">
+<!-- Document Summary View -->
+<div *ngIf="documentSummary && !isLoading" class="summary-content">
+  <!-- Left Side: Document Info, Summary and Answers ONLY -->
+  <div class="document-panel" #documentPanel>
+    <!-- Document Header -->
+    <div class="back-navigation">
+      <button mat-button color="primary" (click)="returnToSearch()">
+        <mat-icon>chevron_left</mat-icon>
+        Search for another document
+      </button>
+    </div>
+    <mat-card class="document-header-card">
+      <mat-card-content>
+        <div class="document-title-section">
+          <h2>{{ documentSummary.id }} {{ documentSummary.title }}</h2>
+          <div class="document-metadata">
+            <div class="meta-item">
+              <a href="javascript:void(0)" class="pdf-link" (click)="openPdfDocument(documentSummary.id)">
                 <span class="label">PDF</span>
-                <span class="meta-bullet">•</span>
-                <span>Published {{ documentSummary.publicationDate }}</span>
-                <span class="meta-bullet">•</span>
-                <span>Agency: {{ documentSummary.agency }}</span>
-                <span class="meta-bullet">•</span>
-                <span>Document type: {{ documentSummary.documentType }}</span>
-              </div>
-              <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
-                {{ showExtendedMetadata ? 'less' : 'more' }}
-                <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
-              </button>
+              </a>
+              <span class="meta-bullet">•</span>
+              <span>Published {{ documentSummary.publicationDate }}</span>
+              <span class="meta-bullet">•</span>
+              <span>Agency: {{ documentSummary.agency }}</span>
+              <span class="meta-bullet">•</span>
+              <span>Document type: {{ documentSummary.documentType }}</span>
             </div>
-            
-            <!-- Extended metadata section -->
-            <div class="extended-metadata" *ngIf="showExtendedMetadata">
-              <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
-                <span class="label">Pages</span>
-                <span>{{ documentSummary.startPage }}-{{ documentSummary.endPage }}</span>
-              </div>
-              <div class="extended-meta-item" *ngIf="documentSummary.cfrReferences && documentSummary.cfrReferences.length > 0">
-                <span class="label">CFR</span>
-                <span>{{ documentSummary.cfrReferences.join(', ') }}</span>
-              </div>
-              <div class="extended-meta-item" *ngIf="documentSummary.docketIds && documentSummary.docketIds.length > 0">
-                <span class="label">Docket</span>
-                <span>{{ documentSummary.docketIds.join(', ') }}</span>
-              </div>
-              <div class="extended-meta-item" *ngIf="documentSummary.regulationIdNumbers && documentSummary.regulationIdNumbers.length > 0">
-                <span class="label">RIN</span>
-                <span>{{ documentSummary.regulationIdNumbers.join(', ') }}</span>
-              </div>
-              <div class="extended-meta-item" *ngIf="documentSummary.documentNumber">
-                <span class="label">Document No</span>
-                <span>{{ documentSummary.documentNumber }}</span>
-              </div>
-              <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
-                <span class="label">Effective Date</span>
-                <span>{{ documentSummary.effectiveDate }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- AI Summary Button -->
-          <div class="ai-summary-button">
-            <button mat-stroked-button color="primary">
-              <mat-icon>auto_awesome</mat-icon>
-              AI Summary
+            <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
+              {{ showExtendedMetadata ? 'Less' : 'More' }}
+              <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        
 
+        <!-- Extended metadata section -->
+        <div class="extended-metadata" *ngIf="showExtendedMetadata">
+          <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
+            <span class="label">Pages:</span>
+            <span>
+              {{ documentSummary.startPage }}-{{ documentSummary.endPage }} ({{ 
+                documentSummary.endPage - documentSummary.startPage + 1
+              }}
+              pages)</span>
+          </div>
+          <div class="extended-meta-item" *ngIf="documentSummary.cfrReferences && documentSummary.cfrReferences.length > 0">
+            <span class="label">CFR:</span>
+            <span>{{ documentSummary.cfrReferences.join(', ') }}</span>
+          </div>
+          <div class="extended-meta-item" *ngIf="documentSummary.docketIds && documentSummary.docketIds.length > 0">
+            <span class="label">Docket No:</span>
+            <span>{{ documentSummary.docketIds.join(', ') }}</span>
+          </div>
+          <div class="extended-meta-item" *ngIf="documentSummary.regulationIdNumbers && documentSummary.regulationIdNumbers.length > 0">
+            <span class="label">RIN:</span>
+            <span>{{ documentSummary.regulationIdNumbers.join(', ') }}</span>
+          </div>
+          <div class="extended-meta-item" *ngIf="documentSummary.documentNumber">
+            <span class="label">Document No:</span>
+            <span>{{ documentSummary.documentNumber }}</span>
+          </div>
+          <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
+            <span class="label">Dates:</span>
+            <span>This final rule is effective {{ documentSummary.effectiveDate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- AI Summary Button -->
+        <!-- <button mat-stroked-button color="primary" class="ai-summary-button">
+          <mat-icon>auto_awesome</mat-icon>
+          AI Summary
+        </button> -->
+      </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" class="ai-summary-button">
+        AI Summary
+      </button>
+    </div>
+      
+      <!-- AI Summary Content -->
+      <!-- <mat-card class="summary-card">... -->
+      
       <!-- ONLY Answers in the left panel -->
-      <div class="answers-history" #answersHistory>
-        <mat-card *ngFor="let response of promptResponses" class="answer-card" [class.highlighted-answer]="response.isActive">
+      <div class="answers-history" #answerHistory>
+        <mat-card *ngFor="let response of promptResponses" class="answer-card"
+        [class.highlighted-answer]="response.isActive">
           <mat-card-content>
             <div class="answer">
               <mat-icon class="answer-icon">auto_awesome</mat-icon>
@@ -91,18 +119,21 @@
                 <div class="summary-actions">
                   <div class="actions-container">
                     <div class="left-actions">
-                      <button mat-button class="action-button" (click)="copyText(response.answer)">
+                      <button mat-button class="action-button"
+                      (click)="copyText(response.answer)">
                         <mat-icon>content_copy</mat-icon>
                         Copy
                       </button>
                     </div>
                     <div class="left-actions">
-                      <button mat-button class="action-button" (click)="downloadText(response.answer, 'answer.txt')">
+                      <button mat-button class="action-button"
+                      (click)="downloadText(response.answer, 'answer.txt')">
                         <mat-icon>download</mat-icon>
                         Download
                       </button>
                     </div>
                     <div class="right-actions">
+                      
                       <button mat-stroked-button class="feedback-button" (click)="provideFeedback(response.id)">
                         Feedback
                       </button>
@@ -117,63 +148,60 @@
     </div>
 
     <!-- Right Side: Prompts, Questions Asked, and Question Input -->
-    <div class="prompts-panel">
-      <!-- Prompts Header -->
-      <div class="prompts-header">
-        <h3>Legal research prompts</h3>
-      </div>
-
-      <!-- Predefined Prompts with "More suggestions" option -->
-      <div class="predefined-prompts">
-        <!-- Show initial set of prompts -->
-        <div *ngFor="let promptLabel of visiblePrompts" class="prompt-card" (click)="askQuestion(promptLabel)">
-          <mat-icon class="prompt-icon">auto_awesome</mat-icon>
-          <p>{{ promptLabel }}</p>
-        </div>
-        
-        <!-- More suggestions button - only show if there are more prompts -->
-        <div *ngIf="predefinedPrompts.length > initialPromptCount" 
-          class="more-suggestions-card"
-          (click)="toggleShowAllPrompts()">
-       <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
-       <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
-     </div>
-   </div>
-
-      <!-- QUESTIONS ASKED BY USER - Active one appears as dark blue, others lighter -->
-      <div class="asked-questions">
-        <div *ngFor="let response of promptResponses" 
-             class="question-bubble"
-             [class.active]="response.isActive"
-             [class.inactive]="!response.isActive"
-             (click)="selectQuestion(response.id)">
-          <mat-icon class="question-icon">auto_awesome</mat-icon>
-          <p>{{ response.question }}</p>
-        </div>
-      </div>
-
-      <!-- Custom Question Input -->
-      <div class="ask-question-container">
-        <mat-icon class="prompt-icon">auto_awesome</mat-icon>
-        <h4>Ask me about this document</h4>
-        <mat-form-field appearance="outline" class="question-field">
-          <textarea 
-            matInput 
-            [formControl]="questionControl" 
-            placeholder="For best results, be as specific as possible"
-            rows="4">
-          </textarea>
-          <mat-error *ngIf="questionControl.hasError('required')">
-            Please enter a question
-          </mat-error>
-          <mat-hint align="end">1000 characters remaining</mat-hint>
-        </mat-form-field>
-        <div class="question-actions">
-          <button mat-raised-button color="primary" [disabled]="questionControl.invalid" (click)="askQuestion()">
-            Submit
-          </button>
-        </div>
-      </div>
+<div class="prompts-panel">
+  <!-- Prompts Header -->
+  <div class="prompts-header">
+    <h3>Suggested Prompts</h3>
+  </div>
+  
+  <!-- Predefined Prompts with "More suggestions" option -->
+  <div class="predefined-prompts">
+    <!-- Show initial set of prompts -->
+    <div *ngFor="let prompt of visiblePrompts" class="prompt-card" (click)="askQuestion(prompt)">
+      <mat-icon class="prompt-icon">auto_awesome</mat-icon>
+      <p>{{ prompt }}</p>
+    </div>
+    
+    <!-- More suggestions button - only show if there are more prompts -->
+    <div *ngIf="predefinedPrompts.length > initialPromptCount" class="suggestions-card" (click)="toggleShowAllPrompts()">
+      <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
+      <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
     </div>
   </div>
+  
+  <!-- QUESTIONS ASKED BY USER - Active one appears as dark blue, others lighter -->
+  <div class="asked-questions" #askedQuestions>
+    <div
+      *ngFor="let response of promptResponses"
+      class="question-bubble"
+      [class.active]="response.isActive"
+      [class.inactive]="!response.isActive"
+      (click)="selectQuestion(response.id)"
+    >
+      <mat-icon class="question-icon">auto_awesome</mat-icon>
+      <p>{{ response.question }}</p>
+    </div>
+  </div>
+  
+  <div class="ask-question-container">
+    <mat-icon class="prompt-icon">auto_awesome</mat-icon>
+    <h4>Ask me about this document</h4>
+    <mat-form-field appearance="outline" class="question-field">
+      <textarea
+        matInput
+        [formControl]="questionControl"
+        placeholder="For best results, be as specific as possible"
+        rows="4"
+        [maxlength]="questionCharLimit"
+      >
+      </textarea>
+      <mat-error *ngIf="questionControl.hasError('required')"> Please enter a question </mat-error>
+      <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
+    </mat-form-field>
+    <div class="question-actions">
+      <button mat-raised-button color="primary" [disabled]="questionControl.invalid" (click)="askQuestion()">Submit</button>
+    </div>
+  </div>
+  </div>
+</div>
 </div>

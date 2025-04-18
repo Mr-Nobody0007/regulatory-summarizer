@@ -42,6 +42,12 @@ export interface SearchResult {
   effectiveDate?: string;
 }
 
+export interface WhitelistedUrl {
+  name: string;
+  domain: string;
+  url: string;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -202,12 +208,18 @@ handleClickOutside(event: MouseEvent) {
   // }
 
   private loadDefaultPrompt(documentType: string): void {
+    console.log('Loading default prompt for document type:', documentType);
+    
     this.promptService.getDefaultSummaryPrompt(documentType).subscribe(prompt => {
+      console.log('Default summary prompt:', prompt);
       this.selectedPrompt = prompt;
       
       // Store the selected prompt in the service for use in document-summary
       if (prompt) {
         this.documentDataService.setSelectedPrompt(prompt);
+        console.log('Stored prompt in DocumentDataService:', prompt);
+      } else {
+        console.log('No matching prompt found for document type:', documentType);
       }
       
       this.cdr.detectChanges();

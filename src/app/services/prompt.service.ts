@@ -84,10 +84,19 @@ export class PromptService {
    * @param documentType The document type to filter by
    */
   getPromptsByDocumentType(documentType: string): Observable<Prompt[]> {
-    // Filter prompts that match the document type or are for ANY type
-    const filteredPrompts = this.prompts.filter(p => 
-      p.documentType === documentType || p.documentType === 'ANY'
-    );
+    console.log('Filtering prompts for document type:', documentType);
+    
+    // Normalize document type to handle case differences
+    const normalizedType = documentType?.trim().toLowerCase() || '';
+    
+    // Filter prompts that match the document type (case-insensitive) or are for ANY type
+    const filteredPrompts = this.prompts.filter(p => {
+      const promptType = p.documentType?.trim().toLowerCase() || '';
+      return promptType === normalizedType || promptType === 'any';
+    });
+    
+    console.log('Filtered prompts:', filteredPrompts);
+    
     return of(filteredPrompts);
   }
 

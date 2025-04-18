@@ -1,0 +1,20 @@
+{
+    "propertySources": [
+      {
+        "source": {
+          "getAccessToken": "https://cacr-dev2.bankofamerica.com/cacrsecuredapi/getAccessToken",
+          "getUserEntitlement": "https://cacr-dev2-msgw.bankofamerica.com/UsersApp/EntitlementsAPI/v1/Users?userType=A&userId={userId}",
+          "trackLoginActivity": "https://cacr-dev2-msgw.bankofamerica.com/UsersApp/uap/1.0.0/login-activity",
+          "pickListURLPath": "https://cacr-dev2-msgw.bankofamerica.com/ReferencesApp/pickListapi/v1/picklist?itemtype=",
+          "profile": "https://cacr-dev2-msgw.bankofamerica.com/ReferencesApp/ADRUsersAPI/ProfilePicture?loginId={loginId}",
+          "SHOW_EXTENDED_METADATA": true,
+          "SHOW_TUNING_SETTINGS": true,
+          "SHOW_FEEDBACK_BUTTON": true,
+          "FEDERAL_SEARCH_URL": "https://ah-1395282-001.sdl.corp.bankofamerica.com:8007/api/v1/open-ai/federal-registry-multiple-suggestions?searchTerm=",
+          "DEFAULT_PROMPTS": "https://ah-1395282-001.sdl.corp.bankofamerica.com:8007/api/v1/prompts/doctype-options",
+          "SEND_PROMPT_AI": "https://ah-1395282-001.sdl.corp.bankofamerica.com:8007/api/v1/open-ai/orchestrate-send-prompt",
+          "FEDERAL_REGISTER_DOCUMENTS": "https://www.federalregister.gov/api/v1/documents"
+        }
+      }
+    ]
+  }

@@ -1,0 +1,128 @@
+<div class="feedback-dialog-container">
+    <div class="dialog-header">
+        <h2 mat-dialog-title>Regulation Summarization Feedback</h2>
+        <button mat-icon-button (click)="onClose()" class="close-btn-color">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="request-id">Request Id: {{ data.responseId }}</div>
+
+    <p style="align-items: center" class="rating-instructions ps-5">
+        Please rate each criteria on a scale of 1 to 5: 1 - strongly disagree, 5 - strongly agree
+    </p>
+
+    <form [formGroup]="feedbackForm" (ngSubmit)="onSubmit()">
+        <div mat-dialog-content>
+            <table class="feedback-criteria-table">
+                <thead>
+                    <tr>
+                        <th class="criteria-column">Criteria</th>
+                        <th class="description-column">Description</th>
+                        <th class="score-column">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Accuracy</td>
+                        <td>The information is correct, with no hallucinations or misinterpretations</td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="accuracy">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Completeness</td>
+                        <td>Are all critical aspects included without omitting key details?</td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="completeness">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Consistency</td>
+                        <td>Does the tool consistently produce summaries in the expected format and tone?</td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="consistency">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Clarity and Readability</td>
+                        <td>The language is clear, concise, and free of excessive jargon?</td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="clarity">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Time Savings</td>
+                        <td>
+                            As compared to a manual process, how much faster did the AI Summarization make the process?
+                            (1 - no savings, 5 - best saving)
+                        </td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="timeSavings">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Usefulness</td>
+                        <td>
+                            Would you use the summary as a starting point to produce
+                            a work product/document that you will give to an internal client?
+                        </td>
+                        <td>
+                            <mat-form-field appearance="outline" class="custom-mat-form-fields">
+                                <mat-select formControlName="usefulness">
+                                    <mat-option *ngFor="let rating of getRatingOptions()" [value]="rating">
+                                        {{ rating }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Comments</td>
+                        <td colspan="2">
+                            <mat-form-field appearance="outline" class="comments-field">
+                                <textarea matInput formControlName="comments"
+                                    placeholder="Share your experience (max 1000 characters)..." rows="4"
+                                    maxlength="1000"></textarea>
+                            </mat-form-field>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div mat-dialog-actions>
+            <button mat-raised-button color="primary" type="submit" class="submit-button">Submit Feedback</button>
+        </div>
+    </form>
+</div>

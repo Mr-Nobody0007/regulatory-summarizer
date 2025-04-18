@@ -80,6 +80,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   processStep = 0; // Track which step of the API process we're in (0-3)
   showExtendedMetadata = false;
   error: string | null = null;
+  filteredPrompts: Prompt[] = [];
 
   // data = {
   //   documentNumber: '2025-00394',
@@ -201,15 +202,27 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const documentId = params.get('id');
       const isUrl = params.get('isUrl') === 'true';
-
+  
       if (documentId) {
         this.loadDocumentSummary(documentId, isUrl);
       } else {
         this.error = 'No document specified';
         this.isLoading = false;
-        this.cdr.detectChanges(); // Force change detection
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  private loadPromptSuggestions(): void {
+    if (this.documentSummary?.documentType) {
+      this.promptService.getPromptsByDocumentType(this.documentSummary.documentType)
+        .subscribe(prompts => {
+          this.filteredPrompts = prompts;
+          // Update predefined prompts based on these filtered prompts
+          this.predefinedPrompts = prompts.map(p => p.prompt);
+          this.cdr.detectChanges();
+        });
+    }
   }
 
   ngAfterViewChecked() {
@@ -238,9 +251,14 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     this.processStep = 1; // Starting the first API call
     this.error = null;
     this.cdr.detectChanges();
-
+    
+    // Get the prompt from router state if available
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras.state as { prompt: string } | undefined;
+    const promptText = state?.prompt || 'Provide a concise summary of this document';
+    
     this.regulatoryService
-      .summarizeDocument2(documentId, isUrl)
+      .summarizeDocumentWithPrompt(documentId, promptText, isUrl)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -256,42 +274,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       )
       .subscribe({
         next: summary => {
-          if (summary) {
-            // Set up predefined prompts based on document type
-            this.setupPredefinedPrompts(summary.documentType);
-
-            // Add the default summary prompt as the first question
-            // with the summary that was just loaded as the answer
-            this.addDefaultSummaryPrompt(summary.summary);
-          }
-
-          if (summary) {
-            // Extract the process step observable if available
-            if ('processStep$' in summary) {
-              // TypeScript doesn't recognize processStep$ since it's not in the interface
-              // Use type assertion to access it
-              const processStep$ = (summary as any).processStep$;
-
-              if (processStep$) {
-                // Subscribe to process step updates
-                processStep$.pipe(takeUntil(this.destroy$)).subscribe((step: number) => {
-                  this.processStep = step;
-                  this.cdr.detectChanges(); // Force change detection on step update
-                });
-              }
-
-              // Remove processStep$ from summary to match the interface
-              const { processStep$: _, ...cleanSummary } = summary as any;
-              this.documentSummary = cleanSummary;
-            } else {
-              this.documentSummary = summary;
-            }
-
-            this.cdr.detectChanges(); // Force change detection
-          } else if (!this.error) {
-            // Only set error if we don't already have one from catchError
-            this.error = 'Failed to load document summary. Please try again.';
-          }
+          // Rest of your existing code...
         }
       });
   }
@@ -300,27 +283,16 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
    * Set up the predefined prompts based on document type
    */
   private setupPredefinedPrompts(documentType: string): void {
-    // Start with default prompts
-    let prompts = [...this.predefinedPromptsByType['default']];
-
-    // Add document-type specific prompts if available
-    if (documentType && this.predefinedPromptsByType[documentType]) {
-      prompts = prompts.concat(this.predefinedPromptsByType[documentType]);
-    }
-
-    // Add a common context-specific prompt
-    prompts.push(
-      `Provide a concise summary of the key requirements and obligations outlined in this ${documentType.toLowerCase()} using approximately 500 words`
-    );
-
-    // Add a geographically relevant prompt
-    prompts.push(`Does this ${documentType.toLowerCase()} apply in New York?`);
-
-    // Set the prompts
-    this.predefinedPrompts = prompts;
-
-    // Reset the show all prompts flag
-    this.showAllPrompts = false;
+    // First, get prompts for this document type from the service
+    this.promptService.getPromptsByDocumentType(documentType)
+      .subscribe(prompts => {
+        this.filteredPrompts = prompts;
+        // Map to just the prompt text for the existing UI
+        this.predefinedPrompts = prompts.map(p => p.prompt);
+        // Reset the show all prompts flag
+        this.showAllPrompts = false;
+        this.cdr.detectChanges();
+      });
   }
 
   selectQuestion(selectedResponseId: string): void {
@@ -381,64 +353,69 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   }
 
   /**
-   * Get the prompts to display based on current state
-   */
-  get visiblePrompts(): string[] {
+ * Get the prompts to display based on current state
+ */
+  get visiblePrompts(): Prompt[] {
     if (this.showAllPrompts) {
-      return this.predefinedPrompts;
+      return this.filteredPrompts;
     } else {
-      return this.predefinedPrompts.slice(0, this.initialPromptCount);
+      return this.filteredPrompts.slice(0, this.initialPromptCount);
     }
   }
 
   
-  askQuestion(question: string = ''): void {
-    // If no question provided, use the one from the form
-    const questionText = question || this.questionControl.value;
-    
-    if (!questionText) {
+// Update the askQuestion method to properly handle the question parameter
+askQuestion(prompt: string = ''): void {
+  // If prompt is provided (from a suggestion)
+  if (prompt) {
+    // Find the full prompt object by its prompt text
+    const promptObj = this.filteredPrompts.find(p => p.prompt === prompt);
+    if (promptObj) {
+      // Set the question control value but don't submit yet
+      this.questionControl.setValue(promptObj.prompt);
       return;
     }
-    
-    if (!this.documentSummary) {
-      return;
-    }
-    
-    // Create a new prompt response with a temporary ID and loading state
-    const newPrompt: PromptResponse = {
-      id: `temp-${Date.now()}`,
-      question: questionText,
-      answer: '', // Will be filled by the API response
-      timestamp: new Date(),
-      isLoading: true, // Set loading state to true
-      isActive: true
-    };
-    
-    const updatedPrompts = this.promptResponses.map(pr => ({
-      ...pr,
-      isActive: false
-    }));
-    
-    this.promptResponses = [...updatedPrompts, newPrompt];
-    
-    // Set flag to scroll to bottom of document panel
-    this.shouldScrollToBottom = true;
-    // Set flag to scroll asked-questions to bottom
-    this.shouldScrollQuestionsToBottom = true;
-    
-    this.cdr.detectChanges();
-    
-    // Add to the list immediately to show the question
-    //this.promptResponses = [...this.promptResponses, newPrompt];
-    //this.cdr.detectChanges(); // Force change detection
-
-    // Clear the input if using the form
-  if (!question) {
+  }
+  
+  // For when the user submits a question they typed themselves, or
+  // when they click "Submit" after a suggestion was populated to the text box
+  const questionText = prompt || this.questionControl.value;
+  
+  // Make sure we have a valid question and document
+  if (!questionText || !this.documentSummary) {
+    return;
+  }
+  
+  // Create a new prompt response with a temporary ID and loading state
+  const newPrompt: PromptResponse = {
+    id: `temp-${Date.now()}`,
+    question: questionText,
+    answer: '', // Will be filled by the API response
+    timestamp: new Date(),
+    isLoading: true, // Set loading state to true
+    isActive: true
+  };
+  
+  // Update existing prompts to inactive
+  const updatedPrompts = this.promptResponses.map(pr => ({
+    ...pr,
+    isActive: false
+  }));
+  
+  // Add the new prompt to the list
+  this.promptResponses = [...updatedPrompts, newPrompt];
+  
+  // Set flags to scroll to bottom
+  this.shouldScrollToBottom = true;
+  this.shouldScrollQuestionsToBottom = true;
+  this.cdr.detectChanges();
+  
+  // Clear the input if not using a pre-defined prompt
+  if (!prompt) {
     this.questionControl.reset();
   }
   
-  // Call the service to get an answer - now using the optimized implementation
-  // that doesn't repeat the document fetching process for each question
+  // Call the service to get an answer
   this.regulatoryService
     .askDocumentQuestion(this.documentSummary.id, questionText)
     .pipe(
@@ -452,7 +429,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
           return pr;
         });
         this.shouldScrollToBottom = true;
-        this.cdr.detectChanges(); // Force change detection
+        this.cdr.detectChanges();
       }),
       catchError(error => {
         // Handle error in asking question
@@ -465,14 +442,14 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
           return pr;
         });
         this.shouldScrollToBottom = true;
-        this.cdr.detectChanges(); // Force change detection
-        return of(null); // Return null to be handled in the next callback
+        this.cdr.detectChanges();
+        return of(null);
       })
     )
     .subscribe({
       next: response => {
         if (response) {
-          // Update the prompt response with the answer - format it for better display
+          // Update the prompt response with the answer
           const formattedAnswer = this.formatAIResponse(response.answer);
           
           this.promptResponses = this.promptResponses.map(pr => {
@@ -487,12 +464,11 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
             return pr;
           });
           this.shouldScrollToBottom = true;
-          this.cdr.detectChanges(); // Force change detection
+          this.cdr.detectChanges();
         }
-        // If response is null, the error has been handled in catchError
       }
     });
-  }
+}
   
   /**
    * Format AI response text for better display

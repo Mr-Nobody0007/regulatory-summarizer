@@ -157,16 +157,17 @@
   <!-- Predefined Prompts with "More suggestions" option -->
   <div class="predefined-prompts">
     <!-- Show initial set of prompts -->
-    <div *ngFor="let prompt of visiblePrompts" class="prompt-card" (click)="askQuestion(prompt)">
+    <div *ngFor="let prompt of visiblePrompts" class="prompt-card" (click)="askQuestion(prompt.label)">
       <mat-icon class="prompt-icon">auto_awesome</mat-icon>
       <p>{{ prompt }}</p>
     </div>
     
     <!-- More suggestions button - only show if there are more prompts -->
-    <div *ngIf="predefinedPrompts.length > initialPromptCount" class="suggestions-card" (click)="toggleShowAllPrompts()">
-      <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
-      <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
-    </div>
+    <!-- More suggestions button - only show if there are more prompts -->
+  <div *ngIf="filteredPrompts.length > initialPromptCount" class="suggestions-card" (click)="toggleShowAllPrompts()">
+    <mat-icon class="more-icon">{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
+    <p>{{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}</p>
+  </div>
   </div>
   
   <!-- QUESTIONS ASKED BY USER - Active one appears as dark blue, others lighter -->

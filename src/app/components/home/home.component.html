@@ -124,6 +124,11 @@
             </mat-card-content>
           </mat-card>
         </div>
+
+        <div *ngIf="selectedPrompt" class="selected-prompt">
+          <div class="prompt-label">{{ selectedPrompt.label }}</div>
+          <div class="prompt-text">{{ selectedPrompt.prompt }}</div>
+        </div>
       </div>
 
       <!-- URL Input UI -->

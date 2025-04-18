@@ -68,7 +68,7 @@ export interface WhitelistedUrl {
 export class HomeComponent implements OnDestroy {
   selectedInputMethod: InputMethod = 'search';
   currentDocument: DocumentContext | null = null;
-  
+  selectedPrompt: Prompt | null = null;
   // Search related properties
   searchControl = new FormControl('');
   searchResults: SearchResult[] = [];
@@ -107,7 +107,8 @@ export class HomeComponent implements OnDestroy {
     private regulatoryService: RegulatoryService,
     private router: Router,
     private cdr: ChangeDetectorRef, // Added ChangeDetectorRef
-    private documentDataService: DocumentDataService
+    private documentDataService: DocumentDataService,
+    private promptService: PromptService
   ) {
     this.urlForm = this.fb.group({
       url: ['', [Validators.required, Validators.pattern('https?://.*'), this.whitelistedDomainValidator()]]
@@ -127,6 +128,8 @@ export class HomeComponent implements OnDestroy {
       this.defaultPromptsList = data;
     });
   }
+
+  
 
   fetchWebpage(url: string): void {
     if (!url) {
@@ -244,7 +247,16 @@ export class HomeComponent implements OnDestroy {
     // Store the selected document in the service
     this.documentDataService.setSelectedDocument(document);
     
-    this.cdr.detectChanges(); // Force change detection
+    // Get the appropriate prompt based on document type
+    this.promptService.getDefaultSummaryPrompt(document.documentType)
+      .subscribe(prompt => {
+        if (prompt) {
+          this.selectedPrompt = prompt;
+          // Also store it in the service for later use
+          this.documentDataService.setSelectedPrompt(prompt);
+        }
+        this.cdr.detectChanges();
+      });
   }
 
   selectInputMethod(method: InputMethod): void {
@@ -368,12 +380,20 @@ export class HomeComponent implements OnDestroy {
 
   summarizeDocument(): void {
     if (this.currentDocument) {
+      const promptText = this.selectedPrompt?.prompt || 
+        'Provide a concise summary of this document highlighting key points.';
+      
       if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
-        this.router.navigate(['/document', this.currentDocument.id]);
+        // Pass the document ID and prompt to the router navigation
+        this.router.navigate(['/document', this.currentDocument.id], {
+          state: { prompt: promptText }
+        });
       } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
         // Encode the URL to make it safe for navigation
         const encodedUrl = encodeURIComponent(this.currentDocument.url);
-        this.router.navigate(['/document', encodedUrl, 'true']);
+        this.router.navigate(['/document', encodedUrl, 'true'], {
+          state: { prompt: promptText }
+        });
       }
     }
   }

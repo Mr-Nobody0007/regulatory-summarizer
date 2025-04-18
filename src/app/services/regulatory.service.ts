@@ -7,6 +7,8 @@ import { DocumentDataService } from './document-data.service';
 import { HttpClient } from '@angular/common/http';
 import { API_CONFIG } from '../components/config';
 import { FeedbackSubmission } from '../components/feedback-dialog/feedback-dialog.component';
+import { AIParametersService } from './ai-parameters.service';
+
 export interface QuestionResponse {
   id: string;
   answer: string;
@@ -20,7 +22,7 @@ export interface SummaryRequestSingle {
   chunkMethod: number;
   chunkMethodVal: number;
   signalRConnId: string;
-  seed:number;
+  seed: number;
   userName: string;
 }
 
@@ -55,52 +57,56 @@ export interface SummaryRequest {
 export class RegulatoryService {
   private federalRegisterApiUrl = 'https://www.federalregister.gov/api/v1/documents';
   private apiBaseUrl= "http://ah.corp:8007"
-  constructor(private documentDataService: DocumentDataService, private http: HttpClient) { }
+  constructor(
+    private documentDataService: DocumentDataService,
+     private http: HttpClient,
+    private aiParametersService: AIParametersService) { }
 
   submitFeedback(feedback: FeedbackSubmission): Observable<boolean>{
     return of(true).pipe(delay(500))
   }
 
   getSingleShotSummary(documentNumber: string, prompt: string): Observable<any> {
-    const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt')
-
+    const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
+    
+    // Get current AI parameters
+    const aiParams = this.aiParametersService.getCurrentParameters();
+    
     const payload: SummaryRequestSingle = {
       documentNumber: documentNumber,
       prompt: prompt,
-      temperature: 0,
-      topP:0,
-      seed: 100,
+      temperature: aiParams.temperature,
+      topP: aiParams.nucleusSampling,
+      seed: parseInt(aiParams.seed) || 100,
       signalRConnId: '',
-      chunkMethod:0,
-      chunkMethodVal:0,
-      userName:'Vatsal'
-
+      chunkMethod: aiParams.chunkMethod,
+      chunkMethodVal: aiParams.chunkMethodValue,
+      userName: 'Vatsal'
     }
 
     return from(
-      fetch(`${url}`,{
-        method:'POST',
+      fetch(`${url}`, {
+        method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type':'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-      }).then(response=>{
-        if(!response.ok){
-        throw new Error('Http error')
-      }
-      return response.json();
-    })
-    ).pipe(map(response=>{
-      return response;
-
-    }),
-    catchError(error=>{
-      console.error("Error gene summ",error);
-      return throwError(()=> new Error(error.message || "error gen summary"));
-      
-    })
-  );
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Http error')
+        }
+        return response.json();
+      })
+    ).pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(error => {
+        console.error("Error gene summ", error);
+        return throwError(() => new Error(error.message || "error gen summary"));
+      })
+    );
   }
   /**
    * Search documents from the Federal Register API using fetch

@@ -5,7 +5,7 @@
     background-color: white;
     border-radius: 8px;
   }
-
+  
   .dialog-header {
     display: flex;
     justify-content: space-between;
@@ -13,25 +13,25 @@
     padding: 16px 24px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
-
+  
   .dialog-header h2 {
     margin: 0;
     font-size: 20px;
     font-weight: 500;
   }
-
+  
   .dialog-content {
     padding: 24px;
   }
-
+  
   .parameter-row {
     margin-bottom: 32px;
   }
-
+  
   .parameter-row:last-child {
     margin-bottom: 0;
   }
-
+  
   .parameter-label {
     display: flex;
     align-items: center;
@@ -39,7 +39,7 @@
     font-size: 16px;
     color: rgba(0, 0, 0, 0.87);
   }
-
+  
   .parameter-label mat-icon {
     font-size: 18px;
     width: 18px;
@@ -47,15 +47,15 @@
     margin-left: 6px;
     color: rgba(0, 0, 0, 0.54);
   }
-
+  
   .parameter-slider {
     width: 100%;
   }
-
-  .seed-field {
+  
+  .seed-field, .value-field, .select-field {
     width: 100%;
   }
-
+  
   .dialog-actions {
     display: flex;
     justify-content: flex-end;

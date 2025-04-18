@@ -1,3 +1,4 @@
+// src/app/services/ai-parameters.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
@@ -5,12 +6,16 @@ export interface AIParameters {
   temperature: number;
   nucleusSampling: number;
   seed: string;
+  chunkMethod: number;
+  chunkMethodValue: number;
 }
 
 const DEFAULT_PARAMETERS: AIParameters = {
-  temperature: 0.5,
-  nucleusSampling: 0.5,
-  seed: ''
+  temperature: 0,
+  nucleusSampling: 0,
+  seed: '100',
+  chunkMethod: 0,
+  chunkMethodValue: 0
 };
 
 @Injectable({

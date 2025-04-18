@@ -100,10 +100,10 @@
                 <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }} • Published: {{ selectedDocument.publicationDate }}</p>
                 
                 <!-- Loading State for Details -->
-                <div *ngIf="selectedDocumentLoading" class="details-loading">
+                <!-- <div *ngIf="selectedDocumentLoading" class="details-loading">
                   <mat-spinner diameter="20"></mat-spinner>
                   <span>Loading additional details...</span>
-                </div>
+                </div> -->
                 
                 <!-- Additional Details when Available -->
                 <!-- <p *ngIf="!selectedDocumentLoading">
@@ -139,9 +139,9 @@
               (click)="urlControl?.reset()">
               <mat-icon>close</mat-icon>
             </button>
-            <mat-error *ngIf="urlControl?.hasError('required')">
+            <!-- <mat-error *ngIf="urlControl?.hasError('required')">
               URL is required
-            </mat-error>
+            </mat-error> -->
             <mat-error *ngIf="urlControl?.hasError('pattern')">
               Please enter a valid URL (must start with http:// or https://)
             </mat-error>
@@ -174,10 +174,10 @@
         </div>
       </div>
 
-      <div *ngIf="selectedPrompt" class="selected-prompt">
+      <!-- <div *ngIf="selectedPrompt" class="selected-prompt">
         <div class="prompt-label">{{ selectedPrompt.label }}</div>
         <div class="prompt-text">{{ selectedPrompt.prompt }}</div>
-      </div>
+      </div> -->
 
       <!-- Summarize Button -->
       <div class="summarize-button-container" *ngIf="canSummarize">

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RegulatoryService } from '../../services/regulatory.service';
 import { Subject, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
@@ -68,36 +68,94 @@ export interface WhitelistedUrl {
 export class HomeComponent implements OnDestroy {
   selectedInputMethod: InputMethod = 'search';
   currentDocument: DocumentContext | null = null;
-  selectedPrompt: Prompt | null = null;
   
   // Search related properties
   searchControl = new FormControl('');
   searchResults: SearchResult[] = [];
   isLoading = false;
+
   noResults = false;
   selectedDocument: SearchResult | null = null;
   showSearchResults = false;
-  selectedDocumentLoading = false;
+
+  defaultPromptControl = new FormControl('');
+  defaultPromptsList = [];
+
   // URL related properties
   urlForm: FormGroup;
   isUrlSubmitted = false;
-  @ViewChild('searchContainer') searchContainer!: ElementRef;
-
+  extractedText: string = '';
+  
   private destroy$ = new Subject<void>();
+
+  whitelistedUrls: WhitelistedUrl[] = [
+    { name: 'Lexis Nexis', domain: 'lexisnexis.com', url: 'https://www.lexisnexis.com' },
+    { name: 'Westlaw', domain: 'westlaw.com', url: 'https://www.westlaw.com' },
+    { name: 'Bloomberg Law', domain: 'bloomberglaw.com', url: 'https://www.bloomberglaw.com' },
+    { name: 'HeinOnline', domain: 'heinonline.org', url: 'https://www.heinonline.org' },
+    { name: 'PACER', domain: 'pacer.gov', url: 'https://www.pacer.gov' }
+  ];
+  
+  // Add a property to control the visibility of the URL info box
+  showUrlInfoBox = false;
+  
+  // Add a property to store validation error message
+  urlValidationErrorMessage = '';
   
   constructor(
     private fb: FormBuilder,
     private regulatoryService: RegulatoryService,
-    private promptService: PromptService,
     private router: Router,
     private cdr: ChangeDetectorRef, // Added ChangeDetectorRef
     private documentDataService: DocumentDataService
   ) {
     this.urlForm = this.fb.group({
-      url: ['', [Validators.required, Validators.pattern('https?://.*')]]
+      url: ['', [Validators.required, Validators.pattern('https?://.*'), this.whitelistedDomainValidator()]]
+    });
+    
+    this.urlForm.get('url')?.valueChanges.subscribe(value => {
+      this.updateUrlValidationMessage();
     });
     
     this.setupSearchListener();
+    this.getDefaultPrompts();
+  }
+
+  getDefaultPrompts() {
+    this.regulatoryService.getFetchDefaultPrompts().subscribe(data => {
+      console.log('Sasikanth Default promopts:::::::::::', data);
+      this.defaultPromptsList = data;
+    });
+  }
+
+  fetchWebpage(url: string): void {
+    if (!url) {
+      alert('Please enter a valid URL.');
+      return;
+    }
+    
+    this.isLoading = true;
+    
+    fetch(url, { method: 'GET' })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text(); // Parse the response as text
+      })
+      .then(htmlContent => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+        this.extractedText = doc.body.textContent || 'No text content found.';
+        console.log('Extracted Text:', this.extractedText);
+        
+        this.isLoading = false;
+      })
+      .catch(error => {
+        console.error('Error fetching the webpage:', error);
+        this.extractedText = 'Failed to fetch webpage content.';
+        this.isLoading = false;
+      });
   }
   
   ngOnDestroy(): void {
@@ -105,9 +163,76 @@ export class HomeComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
+  toggleUrlInfoBox(): void {
+    this.showUrlInfoBox = !this.showUrlInfoBox;
+    this.cdr.detectChanges();
+  }
+  
+  // Add a method to close the URL info box
+  closeUrlInfoBox(): void {
+    this.showUrlInfoBox = false;
+    this.cdr.detectChanges();
+  }
+  
+  // Add a method to update the validation error message
+  updateUrlValidationMessage(): void {
+    const urlControl = this.urlForm.get('url');
+    
+    if (!urlControl?.errors) {
+      this.urlValidationErrorMessage = '';
+      return;
+    }
+    
+    if (urlControl.errors['required']) {
+      this.urlValidationErrorMessage = 'URL is required';
+    } else if (urlControl.errors['pattern']) {
+      this.urlValidationErrorMessage = 'URL must start with http:// or https://';
+    } else if (urlControl.errors['domainNotWhitelisted']) {
+      this.urlValidationErrorMessage = 'URL must be from an approved source. Click the info icon to see the list of approved sources.';
+    }
+    
+    this.cdr.detectChanges();
+  }
+  
+  // Add a custom validator to check if the domain is whitelisted
+  whitelistedDomainValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const url = control.value;
+      
+      if (!url) {
+        return null;
+      }
+      
+      try {
+        // Try to parse the URL
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname;
+        
+        // Check if the hostname matches any of our whitelisted domains
+        const isWhitelisted = this.whitelistedUrls.some(item => 
+          hostname === item.domain || 
+          hostname.endsWith('.' + item.domain)
+        );
+        
+        return isWhitelisted ? null : { domainNotWhitelisted: true };
+      } catch (error) {
+        // If URL can't be parsed, it's invalid
+        return { invalidUrl: true };
+      }
+    };
+  }
+  
+  // Method to navigate to a whitelisted URL
+  navigateToWhitelistedUrl(url: string): void {
+    window.open(url, '_blank');
+  }
+  
+
   selectDocument(document: SearchResult): void {
     this.selectedDocument = document;
     this.showSearchResults = false;
+    
+    this.searchControl.setValue(`(${document.id}) (${document.title})`, { emitEvent: false });
     
     this.currentDocument = {
       id: document.id,
@@ -118,9 +243,6 @@ export class HomeComponent implements OnDestroy {
     
     // Store the selected document in the service
     this.documentDataService.setSelectedDocument(document);
-    
-    // Load the default summary prompt based on document type
-    this.loadDefaultPrompt(document.documentType);
     
     this.cdr.detectChanges(); // Force change detection
   }
@@ -138,16 +260,8 @@ export class HomeComponent implements OnDestroy {
     this.cdr.detectChanges(); // Force change detection
   }
 
-  @HostListener('document:click', ['$event'])
-handleClickOutside(event: MouseEvent) {
-  // If we have search results showing, check if click was outside the search container
-  if (this.showSearchResults && this.searchContainer) {
-    if (!this.searchContainer.nativeElement.contains(event.target)) {
-      this.showSearchResults = false;
-      this.cdr.detectChanges();
-    }
-  }
-}
+  
+
   private setupSearchListener(): void {
     this.searchControl.valueChanges.pipe(
       takeUntil(this.destroy$),
@@ -207,38 +321,8 @@ handleClickOutside(event: MouseEvent) {
   //   this.cdr.detectChanges(); // Force change detection
   // }
 
-  private loadDefaultPrompt(documentType: string): void {
-    console.log('Loading default prompt for document type:', documentType);
-    
-    this.promptService.getDefaultSummaryPrompt(documentType).subscribe(prompt => {
-      console.log('Default summary prompt:', prompt);
-      this.selectedPrompt = prompt;
-      
-      // Store the selected prompt in the service for use in document-summary
-      if (prompt) {
-        this.documentDataService.setSelectedPrompt(prompt);
-        console.log('Stored prompt in DocumentDataService:', prompt);
-      } else {
-        console.log('No matching prompt found for document type:', documentType);
-      }
-      
-      this.cdr.detectChanges();
-    });
-  }
-  summarizeDocument(): void {
-    if (this.currentDocument) {
-      if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
-        // Pass the selected prompt ID to the router if available
-        const promptParam = this.selectedPrompt ? { promptId: this.selectedPrompt.prompt } : {};
-        this.router.navigate(['/document', this.currentDocument.id], { queryParams: promptParam });
-      } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
-        // Encode the URL to make it safe for navigation
-        const encodedUrl = encodeURIComponent(this.currentDocument.url);
-        const promptParam = this.selectedPrompt ? { promptId: this.selectedPrompt.prompt } : {};
-        this.router.navigate(['/document', encodedUrl, 'true'], { queryParams: promptParam });
-      }
-    }
-  }
+ 
+ 
   clearDocumentSelection(): void {
     this.selectedDocument = null;
     this.currentDocument = null;
@@ -282,17 +366,17 @@ handleClickOutside(event: MouseEvent) {
     this.cdr.detectChanges(); // Force change detection
   }
 
-  // summarizeDocument(): void {
-  //   if (this.currentDocument) {
-  //     if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
-  //       this.router.navigate(['/document', this.currentDocument.id]);
-  //     } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
-  //       // Encode the URL to make it safe for navigation
-  //       const encodedUrl = encodeURIComponent(this.currentDocument.url);
-  //       this.router.navigate(['/document', encodedUrl, 'true']);
-  //     }
-  //   }
-  // }
+  summarizeDocument(): void {
+    if (this.currentDocument) {
+      if (this.currentDocument.sourceType === 'search' && this.currentDocument.id) {
+        this.router.navigate(['/document', this.currentDocument.id]);
+      } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
+        // Encode the URL to make it safe for navigation
+        const encodedUrl = encodeURIComponent(this.currentDocument.url);
+        this.router.navigate(['/document', encodedUrl, 'true']);
+      }
+    }
+  }
 
   get canSummarize(): boolean {
     return !!this.currentDocument?.selected;

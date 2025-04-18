@@ -53,7 +53,7 @@
           </div>
         
 
-        <!-- Extended metadata section -->
+        <!-- Extended metadata section - Enhanced with more documentDto fields -->
         <div class="extended-metadata" *ngIf="showExtendedMetadata">
           <div class="extended-meta-item" *ngIf="documentSummary.startPage && documentSummary.endPage">
             <span class="label">Pages:</span>
@@ -82,6 +82,16 @@
           <div class="extended-meta-item" *ngIf="documentSummary.effectiveDate">
             <span class="label">Dates:</span>
             <span>This final rule is effective {{ documentSummary.effectiveDate }}</span>
+          </div>
+          <!-- Add citation if available from documentDto -->
+          <div class="extended-meta-item" *ngIf="documentSummary.documentDto?.citation">
+            <span class="label">Citation:</span>
+            <span>{{ documentSummary.documentDto.citation }}</span>
+          </div>
+          <!-- Add comment close date if available from documentDto -->
+          <div class="extended-meta-item" *ngIf="documentSummary.documentDto?.comments_close_on">
+            <span class="label">Comments Close On:</span>
+            <span>{{ formatDate(documentSummary.documentDto.comments_close_on) }}</span>
           </div>
         </div>
       </div>

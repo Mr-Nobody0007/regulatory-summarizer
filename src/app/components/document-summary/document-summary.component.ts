@@ -1,3 +1,35 @@
+// Modify DocumentSummary interface to include documentDto
+export interface DocumentSummary {
+  id: string;
+  title: string;
+  publicationDate: string;
+  agency: string;
+  documentType: string;
+  summary: string;
+  // Additional metadata
+  documentNumber?: string;
+  startPage?: number;
+  endPage?: number;
+  cfrReferences?: string[];
+  docketIds?: string[];
+  regulationIdNumbers?: string[];
+  effectiveDate?: string;
+  // New field for documentDto from response
+  documentDto?: any;
+  // PDF URL from documentDto
+  pdfUrl?: string;
+}
+
+export interface PromptResponse {
+  id: string;
+  question: string;
+  answer: string;
+  timestamp: Date;
+  isActive?: boolean;
+  isLoading?: boolean;
+}
+
+// Update in the existing component file
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,40 +48,7 @@ import { FeedbackDialogComponent } from '../feedback-dialog/feedback-dialog.comp
 import { finalize, catchError, takeUntil } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { DocumentDataService } from '../../services/document-data.service';
-//import { FEATURE_FLAGS } from '../../app.config';
 import { Prompt, PromptService } from '../../services/prompt.service';
-
-export interface DocumentSummary {
-  id: string;
-  title: string;
-  publicationDate: string;
-  agency: string;
-  documentType: string;
-  summary: string;
-  // Additional metadata
-  documentNumber?: string;
-  startPage?: number;
-  endPage?: number;
-  cfrReferences?: string[];
-  docketIds?: string[];
-  regulationIdNumbers?: string[];
-  effectiveDate?: string;
-}
-
-export interface FeedbackData {
-  responseId: string;
-  timestamp: Date;
-}
-
-// interface FeedbackData {
-export interface PromptResponse {
-  id: string;
-  question: string;
-  answer: string;
-  timestamp: Date;
-  isLoading?: boolean;
-  isActive: boolean; // Flag to track the active/current question - Making it required instead of optional
-}
 
 @Component({
   selector: 'app-document-summary',
@@ -76,46 +75,24 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
 
   documentSummary: DocumentSummary | null = null;
   isLoading = true;
-  isApiProcessing = false; // New flag for tracking the multi-step API process
-  processStep = 0; // Track which step of the API process we're in (0-3)
+  isApiProcessing = false;
+  processStep = 0;
   showExtendedMetadata = false;
   error: string | null = null;
   filteredPrompts: Prompt[] = [];
 
-  // data = {
-  //   documentNumber: '2025-00394',
-  //   aiInstructions: 'Summarize in 10 points',
-  //   temperature: 0,
-  //   topP: 0,
-  //   seed: 100,
-  //   singalRConnId: '',
-  //   aiSource: 'Azure',
-  //   requestUser: 'ZKQZJD5',
-  //   requestDateTimeUtc: '2025-04-10T10:29:09.264Z',
-  //   regSumApiUrl: '',
-  //   displayName: 'Kesani, Krishna Chitanya'
-  // };
-
-  // For handling the Q&A
   questionControl = new FormControl('', [Validators.required]);
   promptResponses: PromptResponse[] = [];
-  questionCharLimit = 1000; // Character limit for questions
+  questionCharLimit = 1000;
   private defaultSummaryPrompt: string = '//';
-  // Subscription cleanup
   private destroy$ = new Subject<void>();
 
-  // Default summary prompt - to be shown as the first question
-  
-
-  // Flags to track if we need to scroll to bottom
   private shouldScrollToBottom = true;
   private shouldScrollQuestionsToBottom = true;
 
-  // Predefined prompts grouped by document type
   predefinedPrompts: string[] = [];
   initialPromptCount = 4;
   showAllPrompts = false;
-
   
   constructor(
     private route: ActivatedRoute,
@@ -126,17 +103,15 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     private cdr: ChangeDetectorRef,
     private promptService: PromptService,
     private dialog: MatDialog
-    
   ) { this.defaultSummaryPrompt = ''; }
 
   // Helper method to scroll to bottom of answers history
   private scrollToBottom(): void {
     try {
       setTimeout(() => {
-        // Use setTimeout to ensure the DOM has been updated
         if (this.documentPanelElement && this.documentPanelElement.nativeElement) {
           const element = this.documentPanelElement.nativeElement;
-          element.scrollTop = element.scrollHeight + 1000; // Add extra to ensure it goes all the way
+          element.scrollTop = element.scrollHeight + 1000;
         }
       }, 10);
     } catch (err) {
@@ -144,14 +119,12 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  // Helper method to scroll to bottom of questions
   private scrollQuestionsToBottom(): void {
     try {
       setTimeout(() => {
-        // Use setTimeout to ensure the DOM has been updated
         if (this.askedQuestionsElement && this.askedQuestionsElement.nativeElement) {
           const element = this.askedQuestionsElement.nativeElement;
-          element.scrollTop = element.scrollHeight + 1000; // Add extra to ensure it goes all the way
+          element.scrollTop = element.scrollHeight + 1000;
         }
       }, 10);
     } catch (err) {
@@ -159,15 +132,11 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     }
   }
 
-
-
   ngOnInit(): void {
-    // Get document ID from route parameters
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const documentId = params.get('id');
       const isUrl = params.get('isUrl') === 'true';
   
-      // Get the prompt from history state
       const state = window.history.state as { prompt?: string };
       const promptText = state?.prompt || 'Provide a concise summary of this document';
       console.log('Prompt from state:', promptText);
@@ -182,26 +151,12 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  // private loadPromptSuggestions(): void {
-  //   if (this.documentSummary?.documentType) {
-  //     this.promptService.getPromptsByDocumentType(this.documentSummary.documentType)
-  //       .subscribe(prompts => {
-  //         this.filteredPrompts = prompts;
-  //         // Update predefined prompts based on these filtered prompts
-  //         this.predefinedPrompts = prompts.map(p => p.prompt);
-  //         this.cdr.detectChanges();
-  //       });
-  //   }
-  // }
-
   ngAfterViewChecked() {
-    // If the flag is set, scroll to the bottom of document panel
     if (this.shouldScrollToBottom && this.documentPanelElement) {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
 
-    // If the flag is set, scroll to the bottom of questions panel
     if (this.shouldScrollQuestionsToBottom && this.askedQuestionsElement) {
       this.scrollQuestionsToBottom();
       this.shouldScrollQuestionsToBottom = false;
@@ -209,7 +164,6 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   }
 
   ngOnDestroy(): void {
-    // Clean up all subscriptions
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -217,7 +171,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   private loadDocumentSummary(documentId: string, isUrl: boolean, promptText: string): void {
     this.isLoading = true;
     this.isApiProcessing = true;
-    this.processStep = 1; // Starting the first API call
+    this.processStep = 1;
     this.error = null;
     this.cdr.detectChanges();
     
@@ -231,7 +185,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
           this.isLoading = false;
           this.isApiProcessing = false;
           this.processStep = 0;
-          this.cdr.detectChanges(); // Force change detection when loading completes
+          this.cdr.detectChanges();
         }),
         catchError(error => {
           this.error = `Failed to load document summary: ${error.message || 'Unknown error'}`;
@@ -241,97 +195,121 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       .subscribe({
         next: summary => {
           if (summary) {
+            // Process the documentDto data if available
+            if (summary.documentDto) {
+              this.processDocumentDto(summary);
+            }
+            
             this.documentSummary = summary;
-            
-            // Load appropriate prompts based on document type
             this.setupPredefinedPrompts(summary.documentType);
-            
-            // Add the initial summary response to the prompt responses
             this.addDefaultSummaryPrompt(summary.summary, promptText);
-            
             this.cdr.detectChanges();
           }
         }
       });
   }
-  
 
-  /**
-   * Set up the predefined prompts based on document type
-   */
+  // New method to process documentDto data
+  private processDocumentDto(summary: DocumentSummary): void {
+    const dto = summary.documentDto;
+    if (!dto) return;
+
+    // Use documentDto data for metadata
+    summary.documentNumber = dto.document_number || summary.documentNumber;
+    summary.title = dto.title || summary.title;
+    summary.agency = this.extractAgencyNames(dto.agencies) || summary.agency;
+    summary.documentType = dto.type || summary.documentType;
+    summary.publicationDate = this.formatDate(dto.publication_date) || summary.publicationDate;
+    summary.effectiveDate = this.formatDate(dto.effective_on) || summary.effectiveDate;
+    summary.startPage = dto.start_page || summary.startPage;
+    summary.endPage = dto.end_page || summary.endPage;
+    summary.cfrReferences = this.formatCfrReferences(dto.cfr_references) || summary.cfrReferences;
+    summary.docketIds = dto.docket_ids || summary.docketIds;
+    summary.regulationIdNumbers = dto.regulation_id_numbers || summary.regulationIdNumbers;
+    
+    // Store PDF URL directly
+    summary.pdfUrl = dto.pdf_url || null;
+  }
+
+  // Helper method to format CFR references
+  private formatCfrReferences(cfrRefs: any[] | null): string[] {
+    if (!cfrRefs || !Array.isArray(cfrRefs) || cfrRefs.length === 0) {
+      return [];
+    }
+    
+    return cfrRefs.map(ref => {
+      if (ref.title && ref.part) {
+        return `${ref.title} CFR ${ref.part}`;
+      }
+      return '';
+    }).filter(ref => ref !== '');
+  }
+
+  // Helper method to extract agency names from agencies array
+  private extractAgencyNames(agencies: any[] | null): string {
+    if (!agencies || !Array.isArray(agencies) || agencies.length === 0) {
+      return '';
+    }
+    
+    return agencies.map(agency => agency.name || '').filter(name => name).join(', ');
+  }
+  
+  // Helper method to format dates - add to component class to use in template
+  formatDate(dateString: string | null): string {
+    if (!dateString) return '';
+    
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  }
+
   private setupPredefinedPrompts(documentType: string): void {
-    // First, get prompts for this document type from the service
     this.promptService.getPromptsByDocumentType(documentType)
       .subscribe(prompts => {
         this.filteredPrompts = prompts;
-        // Map to just the prompt text for the existing UI
         this.predefinedPrompts = prompts.map(p => p.prompt);
-        // Reset the show all prompts flag
         this.showAllPrompts = false;
         this.cdr.detectChanges();
       });
   }
 
   selectQuestion(selectedResponseId: string): void {
-    // Set the selected question as active and deactivate others
     this.promptResponses = this.promptResponses.map(pr => ({
       ...pr,
       isActive: pr.id === selectedResponseId
     }));
 
-    // Set the flags to scroll both panels
     this.shouldScrollToBottom = true;
-    this.shouldScrollQuestionsToBottom = true;
     this.shouldScrollQuestionsToBottom = true;
     this.cdr.detectChanges();
   }
 
-  // Add a new method to handle the default summary prompt
-
-  // Helper method to scroll to bottom of questions
-
-
-
-
-
-
-
-  // Add a new method to handle the default summary prompt
-
-
-
-  // Add a new method to handle the default summary prompt
   private addDefaultSummaryPrompt(summaryText: string, questionText: string = this.defaultSummaryPrompt): void {
-    // Create a prompt response for the default summary
     const defaultPromptResponse: PromptResponse = {
       id: `default-summary-${Date.now()}`,
       question: questionText,
       answer: summaryText,
       timestamp: new Date(),
-      isActive: true // Mark as active initially
+      isActive: true
     };
 
-    // Add it to the beginning of the prompt responses array
     this.promptResponses = [defaultPromptResponse];
     this.shouldScrollToBottom = true;
-    this.cdr.detectChanges(); // Force change detection
+    this.cdr.detectChanges();
   }
 
   toggleExtendedMetadata(): void {
     this.showExtendedMetadata = !this.showExtendedMetadata;
   }
 
-  /**
-   * Toggle between showing all prompts or just the initial set
-   */
   toggleShowAllPrompts(): void {
     this.showAllPrompts = !this.showAllPrompts;
     this.cdr.detectChanges();
   }
 
-  /**
- * Get the prompts to display based on current state
- */
   get visiblePrompts(): Prompt[] {
     if (this.showAllPrompts) {
       return this.filteredPrompts;
@@ -340,215 +318,162 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  
-// Update the askQuestion method to properly handle the question parameter
-// Update the askQuestion method to properly handle the prompt parameter
-// Update the askQuestion method to properly handle the prompt parameter
-askQuestion(label: string = ''): void {
-  // If label is provided (from a suggestion)
-  if (label) {
-    // Find the full prompt object by its label
-    const promptObj = this.filteredPrompts.find(p => p.label === label);
-    if (promptObj) {
-      // Set the question control value to the full prompt text
-      this.questionControl.setValue(promptObj.prompt);
+  askQuestion(label: string = ''): void {
+    if (label) {
+      const promptObj = this.filteredPrompts.find(p => p.label === label);
+      if (promptObj) {
+        this.questionControl.setValue(promptObj.prompt);
+        return;
+      }
+    }
+    
+    const questionText = this.questionControl.value;
+    
+    if (!questionText || !this.documentSummary) {
       return;
     }
-  }
-  
-  const questionText = this.questionControl.value;
-  
-  // Make sure we have a valid question and document
-  if (!questionText || !this.documentSummary) {
-    return;
-  }
-  
-  this.submitQuestion(questionText);
-}
-
-// Add a separate method to handle the submission
-private submitQuestion(questionText: string): void {
-  // Make sure documentSummary exists
-  if (!this.documentSummary) {
-    console.error('No document summary available');
-    return;
+    
+    this.submitQuestion(questionText);
   }
 
-  // Create a new prompt response with a temporary ID and loading state
-  const newPrompt: PromptResponse = {
-    id: `temp-${Date.now()}`,
-    question: questionText,
-    answer: '', // Will be filled by the API response
-    timestamp: new Date(),
-    isLoading: true, // Set loading state to true
-    isActive: true
-  };
-  
-  // Update existing prompts to inactive
-  const updatedPrompts = this.promptResponses.map(pr => ({
-    ...pr,
-    isActive: false
-  }));
-  
-  // Add the new prompt to the list
-  this.promptResponses = [...updatedPrompts, newPrompt];
-  
-  // Set flags to scroll to bottom
-  this.shouldScrollToBottom = true;
-  this.shouldScrollQuestionsToBottom = true;
-  this.cdr.detectChanges();
-  
-  // Clear the input field
-  this.questionControl.reset();
-  
-  // Call the service to get an answer
-  this.regulatoryService
-    .askDocumentQuestion(this.documentSummary.id, questionText)
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => {
-        // Update loading state for this specific prompt
-        this.promptResponses = this.promptResponses.map(pr => {
-          if (pr.id === newPrompt.id) {
-            return { ...pr, isLoading: false };
-          }
-          return pr;
-        });
-        this.shouldScrollToBottom = true;
-        this.cdr.detectChanges();
-      }),
-      catchError(error => {
-        // Handle error in asking question
-        const errorMsg = `Sorry, there was an error processing your question: ${error.message || 'Please try again.'}`;
-        // Update the specific prompt with the error
-        this.promptResponses = this.promptResponses.map(pr => {
-          if (pr.id === newPrompt.id) {
-            return { ...pr, answer: errorMsg, isLoading: false };
-          }
-          return pr;
-        });
-        this.shouldScrollToBottom = true;
-        this.cdr.detectChanges();
-        return of(null);
-      })
-    )
-    .subscribe({
-      next: response => {
-        if (response) {
-          // Update the prompt response with the answer
-          const formattedAnswer = this.formatAIResponse(response.answer);
-          
+  private submitQuestion(questionText: string): void {
+    if (!this.documentSummary) {
+      console.error('No document summary available');
+      return;
+    }
+
+    const newPrompt: PromptResponse = {
+      id: `temp-${Date.now()}`,
+      question: questionText,
+      answer: '',
+      timestamp: new Date(),
+      isLoading: true,
+      isActive: true
+    };
+    
+    const updatedPrompts = this.promptResponses.map(pr => ({
+      ...pr,
+      isActive: false
+    }));
+    
+    this.promptResponses = [...updatedPrompts, newPrompt];
+    
+    this.shouldScrollToBottom = true;
+    this.shouldScrollQuestionsToBottom = true;
+    this.cdr.detectChanges();
+    
+    this.questionControl.reset();
+    
+    this.regulatoryService
+      .askDocumentQuestion(this.documentSummary.id, questionText)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
           this.promptResponses = this.promptResponses.map(pr => {
             if (pr.id === newPrompt.id) {
-              return {
-                ...pr,
-                id: response.id || pr.id,
-                answer: formattedAnswer,
-                isLoading: false
-              };
+              return { ...pr, isLoading: false };
             }
             return pr;
           });
           this.shouldScrollToBottom = true;
           this.cdr.detectChanges();
+        }),
+        catchError(error => {
+          const errorMsg = `Sorry, there was an error processing your question: ${error.message || 'Please try again.'}`;
+          this.promptResponses = this.promptResponses.map(pr => {
+            if (pr.id === newPrompt.id) {
+              return { ...pr, answer: errorMsg, isLoading: false };
+            }
+            return pr;
+          });
+          this.shouldScrollToBottom = true;
+          this.cdr.detectChanges();
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: response => {
+          if (response) {
+            const formattedAnswer = this.formatAIResponse(response.answer);
+            
+            this.promptResponses = this.promptResponses.map(pr => {
+              if (pr.id === newPrompt.id) {
+                return {
+                  ...pr,
+                  id: response.id || pr.id,
+                  answer: formattedAnswer,
+                  isLoading: false
+                };
+              }
+              return pr;
+            });
+            this.shouldScrollToBottom = true;
+            this.cdr.detectChanges();
+          }
         }
-      }
-    });
-}
+      });
+  }
 
-// Add a separate method to handle the submission
-
-  
-  /**
-   * Format AI response text for better display
-   * @param text Raw response text from API
-   * @returns Formatted text with proper line breaks and spacing
-   */
   private formatAIResponse(text: string): string {
     if (!text) return '';
     
-    // Replace numbered lists with proper formatting
     let formatted = text.replace(/(\d+)\.\s+/g, '\n$1. ');
-    
-    // Ensure paragraphs have proper spacing
     formatted = formatted.replace(/\n{3,}/g, '\n\n');
     
-    // Trim extra whitespace
-  return formatted.trim();
-}
-
-/**
- * Opens the PDF document in a new tab
- * @param documentId The ID of the document to open
- */
-openPdfDocument(documentId: string): void {
-  if (!this.documentSummary || !this.documentSummary.publicationDate) {
-    console.error('Missing document information required for PDF URL');
-    return;
+    return formatted.trim();
   }
-  
-  // Parse the publication date
-  // Assuming publicationDate is in the format "Month DD, YYYY" or "MM/DD/YYYY"
-  const pubDate = new Date(this.documentSummary.publicationDate);
-  
-  // Format as YYYY-MM-DD for the URL
-  const formattedDate = 
-    pubDate.getFullYear() + '-' + String(pubDate.getMonth() + 1).padStart(2, '0') + '-' + String(pubDate.getDate()).padStart(2, '0');
-  
-  // Construct the URL based on the govinfo.gov format
-  // Format: https://www.govinfo.gov/content/pkg/FR-YYYY-MM-DD/pdf/YYYY-NNNNN.pdf
-  const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${formattedDate}/pdf/${documentId}.pdf`;
-  
-  // Fallback URL in case the primary one doesn't work
-  //const fallbackUrl = `https://www.federalregister.gov/api/v1/documents/${documentId}/pdf`;
-  
-  // Open in a new tab
-  window.open(pdfUrl, '_blank');
-  
-  // Log for debugging
-  console.log('Opening PDF URL:', pdfUrl);
-  // console.log('Fallback URL (if needed):', fallbackUrl);
-}
-getRemainingCharacters(): number{
-  const currentLength = this.questionControl.value?.length || 0;
-  return this.questionCharLimit - currentLength;
-}
 
-returnToSearch(): void {
-  this.router.navigate(['/'])
-}
-/**
- * Get remaining character count for the question input
+  // Updated method to use the PDF URL from documentDto
+  openPdfDocument(documentId: string): void {
+    if (!this.documentSummary) {
+      console.error('Missing document information required for PDF URL');
+      return;
+    }
+    
+    // Use the stored PDF URL from documentDto if available
+    if (this.documentSummary.pdfUrl) {
+      window.open(this.documentSummary.pdfUrl, '_blank');
+      console.log('Opening PDF URL from documentDto:', this.documentSummary.pdfUrl);
+      return;
+    }
+    
+    // Fall back to constructing URL based on document ID and publication date
+    if (!this.documentSummary.publicationDate) {
+      console.error('Missing publication date required for fallback PDF URL');
+      return;
+    }
+    
+    const pubDate = new Date(this.documentSummary.publicationDate);
+    const formattedDate = 
+      pubDate.getFullYear() + '-' + 
+      String(pubDate.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(pubDate.getDate()).padStart(2, '0');
+    
+    const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${formattedDate}/pdf/${documentId}.pdf`;
+    
+    window.open(pdfUrl, '_blank');
+    console.log('Opening fallback PDF URL:', pdfUrl);
+  }
+
+  getRemainingCharacters(): number {
+    const currentLength = this.questionControl.value?.length || 0;
+    return this.questionCharLimit - currentLength;
+  }
 
   returnToSearch(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'])
   }
-    getRemainingCharacters(): number{
-    const currentLength = this.questionControl.value?.length || 0;
-    return this.questionControl.value?.length}
 
-  /**
- * Copy text to clipboard
- * @param text The text to copy
- */
   copyText(text: string): void {
     if (!text) return;
 
     navigator.clipboard.writeText(text).then(() => {
-      // You could show a success message or snackbar here
       console.log('Text copied to clipboard');
-      // If you have Angular Material, you could use a snackbar:
-      // this.snackBar.open('Copied to clipboard', 'Close', { duration: 2000 });
     }).catch(err => {
       console.error('Error copying text: ', err);
     });
   }
 
-  /**
-   * Download text as a file
-   * @param text The text content to download
-   * @param filename The name of the file
-   */
   downloadText(text: string, filename: string): void {
     if (!text) return;
 
@@ -561,19 +486,17 @@ returnToSearch(): void {
     document.body.appendChild(a);
     a.click();
 
-    // Cleanup
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
 
-  /**
-   * Handle providing feedback
-   * @param responseId The ID of the response to provide feedback for
-   */
   provideFeedback(responseId: string): void {
+    // If we have the regulationRequestId from documentDto, use it for feedback
+    const regulationRequestId = this.documentSummary?.documentDto?.regulationRequestId || responseId;
+    
     const dialogRef = this.dialog.open(FeedbackDialogComponent, {
       width: '800px',
-      data: { responseId }
+      data: { responseId: regulationRequestId }
     });
     
     dialogRef.afterClosed().subscribe(result => {

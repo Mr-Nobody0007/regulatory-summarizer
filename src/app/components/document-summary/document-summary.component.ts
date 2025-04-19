@@ -177,6 +177,19 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     
     console.log('Using prompt for document summary:', promptText);
     
+    // First, set up the component with loading state
+    this.documentSummary = {
+      id: documentId,
+      title: 'Loading...',
+      summary: '',
+      publicationDate: '',
+      agency: '',
+      documentType: ''
+    };
+    
+    // Add an empty response that's marked as loading
+    this.addDefaultSummaryPrompt('', promptText);
+    
     this.regulatoryService
       .summarizeDocumentWithPrompt(documentId, promptText, isUrl)
       .pipe(
@@ -189,6 +202,19 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
         }),
         catchError(error => {
           this.error = `Failed to load document summary: ${error.message || 'Unknown error'}`;
+          
+          // Update the loading summary to show the error
+          this.promptResponses = this.promptResponses.map(pr => {
+            if (pr.isActive) {
+              return {
+                ...pr,
+                answer: `Error: ${this.error}`,
+                isLoading: false
+              };
+            }
+            return pr;
+          });
+          
           return of(null);
         })
       )
@@ -202,7 +228,19 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
             
             this.documentSummary = summary;
             this.setupPredefinedPrompts(summary.documentType);
-            this.addDefaultSummaryPrompt(summary.summary, promptText);
+            
+            // Update the loading summary to show the actual summary
+            this.promptResponses = this.promptResponses.map(pr => {
+              if (pr.isActive) {
+                return {
+                  ...pr,
+                  answer: summary.summary,
+                  isLoading: false
+                };
+              }
+              return pr;
+            });
+            
             this.cdr.detectChanges();
           }
         }
@@ -288,18 +326,29 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   }
 
   private addDefaultSummaryPrompt(summaryText: string, questionText: string = this.defaultSummaryPrompt): void {
+    // If summary is still being loaded, show a loading state
+    const isLoading = !summaryText || summaryText.length === 0;
+    
     const defaultPromptResponse: PromptResponse = {
       id: `default-summary-${Date.now()}`,
       question: questionText,
-      answer: summaryText,
+      answer: summaryText || '',
       timestamp: new Date(),
-      isActive: true
+      isActive: true,
+      isLoading: isLoading // Set this based on whether we have a summary yet
     };
-
+  
     this.promptResponses = [defaultPromptResponse];
     this.shouldScrollToBottom = true;
     this.cdr.detectChanges();
+    
+    // We don't need to subscribe to a non-existent observable here.
+    // The loading state will be updated in the loadDocumentSummary method
+    // when the API response is received.
   }
+  
+  // Modify the loadDocumentSummary method to handle loading properly
+  
 
   toggleExtendedMetadata(): void {
     this.showExtendedMetadata = !this.showExtendedMetadata;
@@ -336,6 +385,8 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     this.submitQuestion(questionText);
   }
 
+  // Changes to make in the submitQuestion method in your document-summary.component.ts file
+
   private submitQuestion(questionText: string): void {
     if (!this.documentSummary) {
       console.error('No document summary available');
@@ -347,7 +398,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       question: questionText,
       answer: '',
       timestamp: new Date(),
-      isLoading: true,
+      isLoading: true, // Set this to true while loading
       isActive: true
     };
     
@@ -369,12 +420,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
-          this.promptResponses = this.promptResponses.map(pr => {
-            if (pr.id === newPrompt.id) {
-              return { ...pr, isLoading: false };
-            }
-            return pr;
-          });
+          // We'll now handle this in the next block, so we no longer need to set isLoading to false here
           this.shouldScrollToBottom = true;
           this.cdr.detectChanges();
         }),
@@ -382,7 +428,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
           const errorMsg = `Sorry, there was an error processing your question: ${error.message || 'Please try again.'}`;
           this.promptResponses = this.promptResponses.map(pr => {
             if (pr.id === newPrompt.id) {
-              return { ...pr, answer: errorMsg, isLoading: false };
+              return { ...pr, answer: errorMsg, isLoading: false }; // Important: set isLoading to false on error
             }
             return pr;
           });
@@ -402,7 +448,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
                   ...pr,
                   id: response.id || pr.id,
                   answer: formattedAnswer,
-                  isLoading: false
+                  isLoading: false // Important: set isLoading to false when the answer is ready
                 };
               }
               return pr;

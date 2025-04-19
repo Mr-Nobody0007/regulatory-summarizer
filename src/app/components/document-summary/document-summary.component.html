@@ -116,6 +116,7 @@
       <!-- <mat-card class="summary-card">... -->
       
       <!-- ONLY Answers in the left panel -->
+      <!-- Change in the answers-history section to hide action buttons when loading -->
       <div class="answers-history" #answerHistory>
         <mat-card *ngFor="let response of promptResponses" class="answer-card"
         [class.highlighted-answer]="response.isActive">
@@ -123,10 +124,20 @@
             <div class="answer">
               <mat-icon class="answer-icon">auto_awesome</mat-icon>
               <div class="answer-content">
-                <p>{{ response.answer || 'Loading answer...' }}</p>
+                <!-- Loading state with spinner and message -->
+                <div *ngIf="response.isLoading" class="loading-answer">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <div class="loading-message-container">
+                    <p class="loading-message">Generating AI response...</p>
+                    <p class="loading-submessage">This may take a moment based on document size and complexity.</p>
+                  </div>
+                </div>
                 
-                <!-- Add the same action buttons to each answer -->
-                <div class="summary-actions">
+                <!-- Actual answer content when not loading -->
+                <p *ngIf="!response.isLoading">{{ response.answer || 'Loading answer...' }}</p>
+                
+                <!-- Action buttons ONLY appear when not loading -->
+                <div *ngIf="response.isLoading===false" class="summary-actions">
                   <div class="actions-container">
                     <div class="left-actions">
                       <button mat-button class="action-button"
@@ -143,7 +154,6 @@
                       </button>
                     </div>
                     <div class="right-actions">
-                      
                       <button mat-stroked-button class="feedback-button" (click)="provideFeedback(response.id)">
                         Feedback
                       </button>

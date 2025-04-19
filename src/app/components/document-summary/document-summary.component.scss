@@ -211,6 +211,73 @@
   }
 }
 
+/* Add these styles to your document-summary.component.scss file */
+
+/* Enhanced loading state styles for document-summary.component.scss */
+
+.loading-answer {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  
+  .loading-message-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .loading-message {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .loading-submessage {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+    margin: 0;
+  }
+  
+  mat-spinner {
+    margin: 0;
+  }
+}
+
+/* Loading pulse animation */
+@keyframes loadingPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading-message {
+  animation: loadingPulse 1.5s infinite ease-in-out;
+}
+
+/* Add style for a subtle animation when answer transitions from loading to complete */
+@keyframes answerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.answer-content p:not(.loading-message):not(.loading-submessage) {
+  animation: answerFadeIn 0.3s ease-in-out;
+}
 // Update the answer card to accommodate the new button layout
 .answer-card {
   transition: all 0.3s ease-in-out;

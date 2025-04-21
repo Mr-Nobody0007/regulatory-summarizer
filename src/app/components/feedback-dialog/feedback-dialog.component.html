@@ -6,7 +6,7 @@
         </button>
     </div>
 
-    <div class="request-id">Request Id: {{ data.responseId }}</div>
+    <div class="request-id">Request ID: {{ data.responseId }}</div>
 
     <p style="align-items: center" class="rating-instructions ps-5">
         Please rate each criteria on a scale of 1 to 5: 1 - strongly disagree, 5 - strongly agree
@@ -122,6 +122,7 @@
         </div>
 
         <div mat-dialog-actions>
+            <div class="request-id-footer">Request ID: {{ data.responseId }}</div>
             <button mat-raised-button color="primary" type="submit" class="submit-button">Submit Feedback</button>
         </div>
     </form>

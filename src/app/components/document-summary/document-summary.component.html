@@ -157,6 +157,9 @@
                       <button mat-stroked-button class="feedback-button" (click)="provideFeedback(response.id)">
                         Feedback
                       </button>
+                      <div *ngIf="response.requestId" class="request-id-text">
+                        Request ID: {{ response.requestId }}
+                      </div>
                     </div>
                   </div>
                 </div>

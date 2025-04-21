@@ -18,13 +18,38 @@
         font-weight: 500;
       }
     }
-    
     .request-id {
-      font-size: 14px;
-      color: rgba(0, 0, 0, 0.6);
-      margin-bottom: 16px;
-      text-align: center;
-    }
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 16px;
+        text-align: center;
+        font-style: italic;
+      }
+      
+      .request-id-footer {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-right: auto;
+        font-style: italic;
+      }
+      
+      [mat-dialog-actions] {
+        justify-content: space-between;
+        padding: 16px 0;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        
+        .submit-button {
+          min-width: 180px;
+          background-color: #0d47a1; // Dark blue color
+          color: white;
+          padding: 8px 24px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+      }
+    
     
     .rating-instructions {
       font-size: 14px;

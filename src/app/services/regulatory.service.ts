@@ -12,6 +12,19 @@ import { AIParametersService } from './ai-parameters.service';
 export interface QuestionResponse {
   id: string;
   answer: string;
+  requestId?: number; // Add requestId field
+}
+
+export interface FeedbackResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface FeedbackItem {
+  surveyQuestionId: number;
+  feedbackText: string | null;
+  regulationRequestId: number;
+  feedbackScore: number | null;
 }
 
 export interface SummaryRequestSingle {
@@ -64,9 +77,98 @@ export class RegulatoryService {
     private aiParametersService: AIParametersService
   ) { }
 
-  submitFeedback(feedback: FeedbackSubmission): Observable<boolean> {
-    return of(true).pipe(delay(500));
+  /**
+ * Map the feedback submission to the API format
+ * @param feedback The feedback submission from the dialog
+ * @returns Array of feedback items in API format
+ */
+private mapFeedbackToApiFormat(feedback: FeedbackSubmission): FeedbackItem[] {
+  // Create an array of feedback objects as required by the API
+  const feedbackArray: FeedbackItem[] = [
+    {
+      surveyQuestionId: 2, // Accuracy
+      feedbackText: null, 
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.accuracy
+    },
+    {
+      surveyQuestionId: 3, // Completeness
+      feedbackText: null,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.completeness
+    },
+    {
+      surveyQuestionId: 4, // Consistency
+      feedbackText: null,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.consistency
+    },
+    {
+      surveyQuestionId: 5, // Clarity and readability
+      feedbackText: null,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.clarity
+    },
+    {
+      surveyQuestionId: 6, // Time Savings
+      feedbackText: null,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.timeSavings
+    },
+    {
+      surveyQuestionId: 7, // Usefulness
+      feedbackText: null,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: feedback.usefulness
+    }
+  ];
+
+  // Add comments if provided
+  if (feedback.comments && feedback.comments.trim().length > 0) {
+    feedbackArray.push({
+      surveyQuestionId: 9, // Comments
+      feedbackText: feedback.comments,
+      regulationRequestId: feedback.responseId,
+      feedbackScore: null
+    });
   }
+
+  return feedbackArray;
+}
+
+  
+
+  /**
+ * Submit feedback to the API
+ * @param feedback The feedback from the dialog
+ * @returns Observable with success/failure information
+ */
+ /**
+ * Submit feedback to the API
+ * @param feedback The feedback from the dialog
+ * @returns Observable with success/failure information
+ */
+submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
+  const apiUrl = 'https://ah-139282-001.sdi.corp.bankofamrica.com:8007/api/v1/Feedback/send-feedbacks';
+  
+  // Map the feedback to the API format
+  const feedbackData: FeedbackItem[] = this.mapFeedbackToApiFormat(feedback);
+  
+  return this.http.post<FeedbackResponse>(apiUrl, feedbackData)
+    .pipe(
+      map(response => {
+        console.log('Feedback API response:', response);
+        return { success: true, message: 'Feedback submitted successfully' };
+      }),
+      catchError(error => {
+        console.error('Error submitting feedback to API:', error);
+        return of({ 
+          success: false, 
+          message: `Failed to submit feedback: ${error.message || 'Unknown error'}` 
+        });
+      })
+    );
+}
 
   getSingleShotSummary(documentNumber: string, prompt: string): Observable<any> {
     const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
@@ -254,7 +356,8 @@ export class RegulatoryService {
           // Store the entire documentDto for additional data access
           documentDto: documentDto,
           // Store the PDF URL directly
-          pdfUrl: documentDto?.pdf_url
+          pdfUrl: documentDto?.pdf_url,
+          regulationRequestId: response.regulationRequestId
         };
         
         return result;
@@ -332,18 +435,23 @@ export class RegulatoryService {
       })
     );
   }
+
+
   
   askDocumentQuestion(documentId: string, question: string): Observable<QuestionResponse> {
     return this.getSingleShotSummary(documentId, question).pipe(
       map(response => {
         // Extract answer from the response
         const answer = response.openAIResponse || 'No answer available';
+        // Get the regulationRequestId from the response
+        const regulationRequestId = typeof response.regulationRequestId === 'number' ? response.regulationRequestId : (parseInt(response.regulationRequestId) || Date.now());
         // Generate a unique ID for the response
-        const responseId = response.documentDto?.regulationRequestId || `q-${Date.now()}`;
+        const responseId = `q-${Date.now()}`;
         
         return {
           id: responseId,
-          answer: answer
+          answer: answer,
+          requestId: regulationRequestId // Pass the regulationRequestId to the component
         };
       }),
       catchError(error => {
@@ -381,7 +489,8 @@ export class RegulatoryService {
     
     return of({
       id: `q-${Date.now()}`,
-      answer: answer
+      answer: answer,
+      requestId: Date.now()
     });
   }
 

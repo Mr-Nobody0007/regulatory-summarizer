@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -9,11 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 
 export interface FeedbackDialogData {
-  responseId: string;
+  responseId: number;
 }
 
 export interface FeedbackSubmission {
-  responseId: string;
+  responseId: number;
   accuracy: number;
   completeness: number;
   consistency: number;
@@ -24,6 +24,7 @@ export interface FeedbackSubmission {
   timestamp: Date;
 }
 
+// Make sure all fields are required in the form
 @Component({
   selector: 'app-feedback-dialog',
   standalone: true,
@@ -49,12 +50,12 @@ export class FeedbackDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: FeedbackDialogData
   ) {
     this.feedbackForm = this.fb.group({
-      accuracy: [null],
-      completeness: [null],
-      consistency: [null],
-      clarity: [null],
-      timeSavings: [null],
-      usefulness: [null],
+      accuracy: [null, Validators.required],
+      completeness: [null, Validators.required],
+      consistency: [null, Validators.required],
+      clarity: [null, Validators.required],
+      timeSavings: [null, Validators.required],
+      usefulness: [null, Validators.required],
       comments: ['']
     });
   }
@@ -72,6 +73,12 @@ export class FeedbackDialogComponent {
       };
       
       this.dialogRef.close(feedback);
+    } else {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.feedbackForm.controls).forEach(field => {
+        const control = this.feedbackForm.get(field);
+        control?.markAsTouched({ onlySelf: true });
+      });
     }
   }
   

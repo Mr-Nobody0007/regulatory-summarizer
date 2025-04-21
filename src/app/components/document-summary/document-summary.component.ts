@@ -18,6 +18,7 @@ export interface DocumentSummary {
   documentDto?: any;
   // PDF URL from documentDto
   pdfUrl?: string;
+  regulationRequestId?:number;
 }
 
 export interface PromptResponse {
@@ -27,6 +28,7 @@ export interface PromptResponse {
   timestamp: Date;
   isActive?: boolean;
   isLoading?: boolean;
+  requestId?: number; // Add requestId field
 }
 
 // Update in the existing component file
@@ -235,7 +237,8 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
                 return {
                   ...pr,
                   answer: summary.summary,
-                  isLoading: false
+                  isLoading: false,
+                  
                 };
               }
               return pr;
@@ -335,7 +338,8 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       answer: summaryText || '',
       timestamp: new Date(),
       isActive: true,
-      isLoading: isLoading // Set this based on whether we have a summary yet
+      isLoading: isLoading ,
+      
     };
   
     this.promptResponses = [defaultPromptResponse];
@@ -448,7 +452,8 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
                   ...pr,
                   id: response.id || pr.id,
                   answer: formattedAnswer,
-                  isLoading: false // Important: set isLoading to false when the answer is ready
+                  isLoading: false, // Important: set isLoading to false when the answer is ready
+                  requestId: response.requestId
                 };
               }
               return pr;
@@ -537,8 +542,9 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
   }
 
   provideFeedback(responseId: string): void {
-    // If we have the regulationRequestId from documentDto, use it for feedback
-    const regulationRequestId = this.documentSummary?.documentDto?.regulationRequestId || responseId;
+    // Find the prompt response to get the requestId
+    const promptResponse = this.promptResponses.find(pr => pr.id === responseId);
+    const regulationRequestId = promptResponse?.requestId || Date.now();
     
     const dialogRef = this.dialog.open(FeedbackDialogComponent, {
       width: '800px',

@@ -33,11 +33,11 @@ import { AIParameters } from '../../services/ai-parameters.service';
 export class AIParametersDialogComponent {
   parameters: AIParameters;
   
-  // Define chunk method options
+  // Updated chunk method options with string values
   chunkMethods = [
-    { value: 0, label: 'Character' },
-    { value: 1, label: 'Paragraph' },
-    { value: 3, label: 'Token' }
+    { value: "Character", label: 'Character' },
+    { value: "Paragraph", label: 'Paragraph' },
+    { value: "Token", label: 'Token' }
   ];
 
   constructor(
@@ -49,12 +49,33 @@ export class AIParametersDialogComponent {
       temperature: data.temperature ?? 0.8,
       nucleusSampling: data.nucleusSampling ?? 0.2,
       seed: data.seed ?? '100',
-      chunkMethod: data.chunkMethod ?? 0,
+      chunkMethod: data.chunkMethod ?? "Character",
       chunkMethodValue: data.chunkMethodValue ?? 0
     };
+    
+    // Auto-set the chunkMethodValue based on the chunkMethod
+    this.updateChunkMethodValue();
   }
 
   formatNumber(value: number): string {
     return value.toFixed(1);
+  }
+  
+  // New method to update chunkMethodValue whenever chunkMethod changes
+  updateChunkMethodValue(): void {
+    // Set the corresponding numeric value based on the selected chunk method
+    switch (this.parameters.chunkMethod) {
+      case "Character":
+        this.parameters.chunkMethodValue = 0;
+        break;
+      case "Paragraph":
+        this.parameters.chunkMethodValue = 1;
+        break;
+      case "Token":
+        this.parameters.chunkMethodValue = 2;
+        break;
+      default:
+        this.parameters.chunkMethodValue = 0;
+    }
   }
 }

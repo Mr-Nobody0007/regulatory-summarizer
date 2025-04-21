@@ -1,68 +1,68 @@
 <div class="dialog-container">
-    <div class="dialog-header">
-      <h2>AI Parameters</h2>
-      <button mat-icon-button mat-dialog-close>
-        <mat-icon>close</mat-icon>
-      </button>
+  <div class="dialog-header">
+    <h2>AI Parameters</h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  
+  <div class="dialog-content">
+    <div class="parameter-row">
+      <div class="parameter-label">
+        Chunk Method
+      </div>
+      <mat-form-field appearance="outline" class="select-field">
+        <mat-select [(ngModel)]="parameters.chunkMethod" (selectionChange)="updateChunkMethodValue()">
+          <mat-option *ngFor="let method of chunkMethods" [value]="method.value">
+            {{ method.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
     
-    <div class="dialog-content">
-      <div class="parameter-row">
-        <div class="parameter-label">
-          Chunk Method
-        </div>
-        <mat-form-field appearance="outline" class="select-field">
-          <mat-select [(ngModel)]="parameters.chunkMethod">
-            <mat-option *ngFor="let method of chunkMethods" [value]="method.value">
-              {{ method.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+    <div class="parameter-row">
+      <div class="parameter-label">
+        Value for Chunk Method (as applicable, leave as 0 for default)
+        <mat-icon matTooltip="Enter a value for the selected chunk method. For Character and Token methods, this represents the number of units per chunk. For Paragraph, this is typically 0.">(Optional)</mat-icon>
       </div>
-      
-      <div class="parameter-row">
-        <div class="parameter-label">
-          Value for Chunk Method (as applicable, leave as 0 for default)
-          <mat-icon matTooltip="Enter a value for the selected chunk method. For Character and Token methods, this represents the number of units per chunk. For Paragraph, this is typically 0.">(Optional)</mat-icon>
-        </div>
-        <mat-form-field appearance="outline" class="value-field">
-          <input matInput type="number" [(ngModel)]="parameters.chunkMethodValue" placeholder="0">
-        </mat-form-field>
-      </div>
-      
-      <div class="parameter-row">
-        <div class="parameter-label">
-          Temperature: {{ parameters.temperature.toFixed(1) }}
-          <mat-icon matTooltip="Controls the randomness of responses. Lower values make responses more focused and deterministic, while higher values make responses more creative and diverse.">info</mat-icon>
-        </div>
-        <mat-slider class="parameter-slider" min="0" max="2" step="0.2" [displayWith]="formatNumber">
-          <input matSliderThumb [(ngModel)]="parameters.temperature">
-        </mat-slider>
-      </div>
-      
-      <div class="parameter-row">
-        <div class="parameter-label">
-          Nucleus Sampling: {{ parameters.nucleusSampling.toFixed(1) }}
-          <mat-icon matTooltip="Controls the size of the probability mass to sample from. Lower values make generation more focused on likely tokens, while higher values incorporate more diverse tokens.">info</mat-icon>
-        </div>
-        <mat-slider class="parameter-slider" min="0" max="1" step="0.2" [displayWith]="formatNumber">
-          <input matSliderThumb [(ngModel)]="parameters.nucleusSampling">
-        </mat-slider>
-      </div>
-      
-      <div class="parameter-row">
-        <div class="parameter-label">
-          Seed
-          <mat-icon matTooltip="Optional. Set a specific seed for deterministic generation. Leave empty for random results.">info</mat-icon>
-        </div>
-        <mat-form-field appearance="outline" class="seed-field">
-          <input matInput [(ngModel)]="parameters.seed" placeholder="100">
-        </mat-form-field>
-      </div>
+      <mat-form-field appearance="outline" class="value-field">
+        <input matInput type="number" [(ngModel)]="parameters.chunkMethodValue" placeholder="0" [disabled]="true">
+      </mat-form-field>
     </div>
     
-    <div class="dialog-actions">
-      <button mat-button mat-dialog-close>Close</button>
-      <button mat-raised-button color="primary" [mat-dialog-close]="parameters">Save changes</button>
+    <div class="parameter-row">
+      <div class="parameter-label">
+        Temperature: {{ parameters.temperature.toFixed(1) }}
+        <mat-icon matTooltip="Controls the randomness of responses. Lower values make responses more focused and deterministic, while higher values make responses more creative and diverse.">info</mat-icon>
+      </div>
+      <mat-slider class="parameter-slider" min="0" max="2" step="0.2" [displayWith]="formatNumber">
+        <input matSliderThumb [(ngModel)]="parameters.temperature">
+      </mat-slider>
+    </div>
+    
+    <div class="parameter-row">
+      <div class="parameter-label">
+        Nucleus Sampling: {{ parameters.nucleusSampling.toFixed(1) }}
+        <mat-icon matTooltip="Controls the size of the probability mass to sample from. Lower values make generation more focused on likely tokens, while higher values incorporate more diverse tokens.">info</mat-icon>
+      </div>
+      <mat-slider class="parameter-slider" min="0" max="1" step="0.2" [displayWith]="formatNumber">
+        <input matSliderThumb [(ngModel)]="parameters.nucleusSampling">
+      </mat-slider>
+    </div>
+    
+    <div class="parameter-row">
+      <div class="parameter-label">
+        Seed
+        <mat-icon matTooltip="Optional. Set a specific seed for deterministic generation. Leave empty for random results.">info</mat-icon>
+      </div>
+      <mat-form-field appearance="outline" class="seed-field">
+        <input matInput [(ngModel)]="parameters.seed" placeholder="100">
+      </mat-form-field>
     </div>
   </div>
+  
+  <div class="dialog-actions">
+    <button mat-button mat-dialog-close>Close</button>
+    <button mat-raised-button color="primary" [mat-dialog-close]="parameters">Save changes</button>
+  </div>
+</div>

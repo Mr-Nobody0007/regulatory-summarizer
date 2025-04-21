@@ -32,7 +32,7 @@ export interface SummaryRequestSingle {
   prompt: string;
   temperature: number;
   topP: number;
-  chunkMethod: number;
+  chunkMethod: string;
   chunkMethodVal: number;
   signalRConnId: string;
   seed: number;
@@ -171,48 +171,49 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
 }
 
   getSingleShotSummary(documentNumber: string, prompt: string): Observable<any> {
-    const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
-    
-    // Get current AI parameters
-    const aiParams = this.aiParametersService.getCurrentParameters();
-    
-    const payload: SummaryRequestSingle = {
-      documentNumber: documentNumber,
-      prompt: prompt,
-      temperature: aiParams.temperature,
-      topP: aiParams.nucleusSampling,
-      seed: parseInt(aiParams.seed) || 100,
-      signalRConnId: '',
-      chunkMethod: aiParams.chunkMethod,
-      chunkMethodVal: aiParams.chunkMethodValue,
-      userName: 'Vatsal'
-    };
+  const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
+  
+  // Get current AI parameters
+  const aiParams = this.aiParametersService.getCurrentParameters();
+  
+  // Updated payload to match new API requirements
+  const payload: SummaryRequestSingle = {
+    documentNumber: documentNumber,
+    prompt: prompt,
+    temperature: aiParams.temperature,
+    topP: aiParams.nucleusSampling,
+    seed: parseInt(aiParams.seed) || 100,
+    signalRConnId: '',
+    chunkMethod: aiParams.chunkMethod, // Now passing string value directly
+    chunkMethodVal: aiParams.chunkMethodValue,
+    userName: 'Vatsal'
+  };
 
-    return from(
-      fetch(`${url}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }).then(response => {
-        if (!response.ok) {
-          throw new Error('Http error');
-        }
-        return response.json();
-      })
-    ).pipe(
-      map(response => {
-        console.log('Single shot summary response:', response);
-        return response;
-      }),
-      catchError(error => {
-        console.error("Error generating summary", error);
-        return throwError(() => new Error(error.message || "error generating summary"));
-      })
-    );
-  }
+  return from(
+    fetch(`${url}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Http error');
+      }
+      return response.json();
+    })
+  ).pipe(
+    map(response => {
+      console.log('Single shot summary response:', response);
+      return response;
+    }),
+    catchError(error => {
+      console.error("Error generating summary", error);
+      return throwError(() => new Error(error.message || "error generating summary"));
+    })
+  );
+}
 
   searchDocuments(searchTerm: string): Observable<SearchResult[]> {
     const url = new URL(this.federalRegisterApiUrl);

@@ -6,7 +6,7 @@ export interface AIParameters {
   temperature: number;
   nucleusSampling: number;
   seed: string;
-  chunkMethod: number;
+  chunkMethod: string; // Changed from number to string
   chunkMethodValue: number;
 }
 
@@ -14,7 +14,7 @@ const DEFAULT_PARAMETERS: AIParameters = {
   temperature: 0,
   nucleusSampling: 0,
   seed: '100',
-  chunkMethod: 0,
+  chunkMethod: "Character", // Changed from 0 to "Character"
   chunkMethodValue: 0
 };
 
@@ -67,7 +67,29 @@ export class AIParametersService {
     try {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
-        return JSON.parse(saved);
+        const parsedParams = JSON.parse(saved);
+        
+        // Handle migration from old format (where chunkMethod was a number)
+        if (typeof parsedParams.chunkMethod === 'number') {
+          switch(parsedParams.chunkMethod) {
+            case 0:
+              parsedParams.chunkMethod = "Character";
+              break;
+            case 1:
+              parsedParams.chunkMethod = "Paragraph";
+              parsedParams.chunkMethodValue = 1;
+              break;
+            case 3: // This was Token in the old code
+              parsedParams.chunkMethod = "Token";
+              parsedParams.chunkMethodValue = 2;
+              break;
+            default:
+              parsedParams.chunkMethod = "Character";
+              parsedParams.chunkMethodValue = 0;
+          }
+        }
+        
+        return parsedParams;
       }
     } catch (error) {
       console.error('Error loading AI parameters from storage:', error);

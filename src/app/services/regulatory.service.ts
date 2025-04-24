@@ -170,6 +170,26 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
     );
 }
 
+private formatDateYYYYMMDD(dateString: string | null): string {
+  if (!dateString) return '';
+  
+  try {
+    // Check if the date is already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      // Parse parts directly to avoid timezone issues
+      return dateString;
+    }
+    
+    // For dates with time component (like API responses), use UTC methods
+    const date = new Date(dateString);
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString || '';
+  }
+}
+
+
   getSingleShotSummary(documentNumber: string, prompt: string): Observable<any> {
   const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
   
@@ -252,14 +272,14 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
             title: item.title,
             documentType: item.type || 'Document',
             agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
-            publicationDate: new Date(item.publication_date).toLocaleDateString(),
+            publicationDate:this.formatDateYYYYMMDD(item.publication_date),
             documentNumber: item.document_number,
             startPage: item.start_page,
             endPage: item.end_page,
             cfrReferences: this.formatCfrReferences(item.cfr_references),
             docketIds: item.docket_ids || [],
             regulationIdNumbers: item.regulation_id_numbers || [],
-            effectiveDate: item.effective_on ? new Date(item.effective_on).toLocaleDateString() : undefined,
+            effectiveDate: item.effective_on ? this.formatDateYYYYMMDD(item.effective_on)  : undefined,
             citation: item.citation,
             rin: item.regulation_id_numbers[0]
           }));
@@ -310,7 +330,7 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
         title: item.title,
         documentType: item.type || 'Document',
         agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
-        publicationDate: new Date(item.publication_date).toLocaleDateString(),
+        publicationDate: this.formatDateYYYYMMDD(item.publication_date),
         rin: Array.isArray(item.regulation_id_numbers) && item.regulation_id_numbers.length > 0 ? item.regulation_id_numbers[0] : 'N/A',
         citation: item.citation || 'N/A'
       })),
@@ -343,7 +363,7 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
         const result: DocumentSummary = {
           id: documentId,
           title: documentDto?.title || `Document ${documentId}`,
-          publicationDate: this.formatDate(documentDto?.publication_date) || new Date().toLocaleDateString(),
+          publicationDate: this.formatDateYYYYMMDD(documentDto?.publication_date) || this.formatDateYYYYMMDD(new Date().toISOString()),
           agency: this.extractAgencyNames(documentDto?.agencies) || 'Unknown Agency',
           documentType: documentDto?.type || 'Document',
           summary: summary,
@@ -353,7 +373,7 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
           cfrReferences: this.formatCfrReferences(documentDto?.cfr_references) || [],
           docketIds: documentDto?.docket_ids || [],
           regulationIdNumbers: documentDto?.regulation_id_numbers || [],
-          effectiveDate: this.formatDate(documentDto?.effective_on),
+          effectiveDate: this.formatDateYYYYMMDD(documentDto?.effective_on),
           // Store the entire documentDto for additional data access
           documentDto: documentDto,
           // Store the PDF URL directly
@@ -379,11 +399,19 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
     return agencies.map(agency => agency.name || '').filter(name => name).join(', ');
   }
   
-  private formatDate(dateString: string | null): string {
+  formatDate(dateString: string | null): string {
     if (!dateString) return '';
     
     try {
-      return new Date(dateString).toLocaleDateString();
+      // Check if the date is already in YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        // Parse parts directly to avoid timezone issues
+        return dateString;
+      }
+      
+      // For dates with time component (like API responses), use UTC methods
+      const date = new Date(dateString);
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
     } catch (error) {
       console.error('Error formatting date:', error);
       return dateString || '';
@@ -408,7 +436,7 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
       map(item => ({
         id: item.document_number,
         title: item.title,
-        publicationDate: new Date(item.publication_date).toLocaleDateString(),
+        publicationDate: this.formatDateYYYYMMDD(new Date().toISOString()),
         agency: item.agencies?.[0]?.name || 'Unknown Agency',
         documentType: item.type || 'Document',
         summary: item.abstract || 'Failed to generate AI summary. Showing document abstract instead.',
@@ -428,7 +456,7 @@ submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
         return of({
           id: documentId,
           title: `Document ${documentId}`,
-          publicationDate: new Date().toLocaleDateString(),
+          publicationDate: this.formatDateYYYYMMDD(new Date().toISOString()),
           agency: 'Unknown Agency',
           documentType: 'Document',
           summary: 'Unable to retrieve document summary'

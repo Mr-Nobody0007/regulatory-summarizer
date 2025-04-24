@@ -148,7 +148,7 @@
                     </div>
                     <div class="left-actions">
                       <button mat-button class="action-button"
-                      (click)="downloadText(response.answer, 'answer.txt')">
+                      (click)="downloadText(response.answer, documentSummary.documentNumber || 'answer', response.requestId)">
                         <mat-icon>download</mat-icon>
                         Download
                       </button>

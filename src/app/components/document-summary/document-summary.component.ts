@@ -300,10 +300,14 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     if (!dateString) return '';
     
     try {
-      return new Date(dateString).toLocaleDateString();
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     } catch (error) {
       console.error('Error formatting date:', error);
-      return dateString;
+      return dateString || '';
     }
   }
 
@@ -494,11 +498,8 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       return;
     }
     
-    const pubDate = new Date(this.documentSummary.publicationDate);
-    const formattedDate = 
-      pubDate.getFullYear() + '-' + 
-      String(pubDate.getMonth() + 1).padStart(2, '0') + '-' + 
-      String(pubDate.getDate()).padStart(2, '0');
+    // Publication date is now in YYYY-MM-DD format
+    const formattedDate = this.documentSummary.publicationDate;
     
     const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${formattedDate}/pdf/${documentId}.pdf`;
     
@@ -525,22 +526,44 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  downloadText(text: string, filename: string): void {
-    if (!text) return;
-
+  downloadText(text: string, filename: string, requestId?: number): void {
+    if (!text || !this.documentSummary) return;
+  
+    // Generate a filename using the document number/ID format seen in the downloads list
+    const documentNumber = this.documentSummary.documentNumber || this.documentSummary.id;
+    
+    // Include requestId in the filename if available to differentiate multiple downloads
+    const formattedFilename = requestId ? 
+      `${documentNumber}-${requestId}.txt` : 
+      `${documentNumber}.txt`;
+    
     const blob = new Blob([text], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-
+  
+    // Set download attribute to the formatted filename
     a.href = url;
-    a.download = filename;
+    a.download = formattedFilename;
+    
+    // Add document origin metadata to help browser identify source
+    // This will appear as "From http://..." in download history
+    if (this.documentSummary.documentDto?.html_url) {
+      // If we have an HTML URL from document DTO, use that
+      a.setAttribute('data-downloadurl', `text/plain:${formattedFilename}:${this.documentSummary.documentDto.html_url}`);
+    } else {
+      // Otherwise use corporate domain from screenshot
+      const sourceUrl = 'http://ah-1395282-001.corp.bankofamerica.com:8003';
+      a.setAttribute('data-downloadurl', `text/plain:${formattedFilename}:${sourceUrl}`);
+    }
+  
     document.body.appendChild(a);
     a.click();
-
+  
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
 
+  
   provideFeedback(responseId: string): void {
     // Find the prompt response to get the requestId
     const promptResponse = this.promptResponses.find(pr => pr.id === responseId);

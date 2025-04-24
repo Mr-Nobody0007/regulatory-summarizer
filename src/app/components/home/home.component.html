@@ -31,60 +31,65 @@
         </div>
       </div>
 
-      <!-- Document Search UI -->
-      <!-- Updated search section in home.component.html -->
-      <div *ngIf="selectedInputMethod === 'search'" class="search-section">
-        <h3>Search for regulatory documents</h3>
-        
-        <!-- Search container with click outside detection -->
-        <div class="search-container" #searchContainer>
-          <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
-            <input 
-              matInput 
-              [formControl]="searchControl" 
-              type="text" 
-              placeholder="Search for a document"
-              autocomplete="off"
-              (focus)="showSearchResults = true">
-            <mat-icon matPrefix>search</mat-icon>
-            <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
-            <button 
-              *ngIf="searchControl.value && !isLoading" 
-              matSuffix 
-              mat-icon-button 
-              aria-label="Clear" 
-              (click)="clearSearch()">
-              <mat-icon>close</mat-icon>
-            </button>
-          </mat-form-field>
-      
-          <!-- Google-style Dropdown Results -->
-          <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value" class="search-dropdown">
-            <div 
-              *ngFor="let result of searchResults" 
-              class="search-result-item"
-              (click)="selectDocument(result)">
-              <mat-icon>description</mat-icon>
-              <div class="result-details">
-                <div class="result-title">({{ result.id }}) {{ result.title }}</div>
-                <div class="result-meta">
-                  {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
-                  <!-- <span>{{ result.rin }}</span>
-                  <span>• Citation: {{ result.citation }}</span> -->
-                </div>
-              </div>
-            </div>
-          </div>
-      
-          <!-- No Results Message (appears in dropdown) -->
-          <div *ngIf="showSearchResults && searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
-            <div class="no-results-message">
-              <mat-icon>search_off</mat-icon>
-              <span>No documents found matching your search. Please try different keywords.</span>
-            </div>
+      <!-- Document Search UI - Updated with keyboard accessibility -->
+<div *ngIf="selectedInputMethod === 'search'" class="search-section">
+  <h3>Search for regulatory documents</h3>
+  
+  <!-- Search container with keyboard navigation -->
+  <div class="search-container" #searchContainer>
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
+      <input 
+        matInput 
+        [formControl]="searchControl" 
+        type="text" 
+        placeholder="Search for a document"
+        autocomplete="off"
+        (focus)="showSearchResults = true"
+        (keydown)="handleSearchKeydown($event)">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
+      <button 
+        *ngIf="searchControl.value && !isLoading" 
+        matSuffix 
+        mat-icon-button 
+        aria-label="Clear" 
+        (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <!-- Google-style Dropdown Results with keyboard accessibility -->
+    <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value" class="search-dropdown">
+      <div 
+        *ngFor="let result of searchResults; let i = index" 
+        class="search-result-item"
+        [class.focused]="focusedResultIndex === i"
+        role="option"
+        [attr.aria-selected]="focusedResultIndex === i"
+        [tabindex]="focusedResultIndex === i ? 0 : -1"
+        (click)="selectDocument(result)"
+        (keydown.enter)="selectDocument(result)">
+        <mat-icon>description</mat-icon>
+        <div class="result-details">
+          <div class="result-title">({{ result.id }}) {{ result.title }}</div>
+          <div class="result-meta">
+            {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- No Results Message (appears in dropdown) -->
+    <div *ngIf="showSearchResults && searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
+      <div class="no-results-message">
+        <mat-icon>search_off</mat-icon>
+        <span>No documents found matching your search. Please try different keywords.</span>
+      </div>
+    </div>
+  </div>
+  <!-- Rest of the component remains the same -->
+
         <!-- Footer Info -->
       <div class="search-footer-info">
         <p>I am able to summarize and guide you on regulatory documents from the 

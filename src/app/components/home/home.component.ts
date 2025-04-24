@@ -69,15 +69,18 @@ export class HomeComponent implements OnDestroy {
   selectedInputMethod: InputMethod = 'search';
   currentDocument: DocumentContext | null = null;
   selectedPrompt: Prompt | null = null;
+  
   // Search related properties
   searchControl = new FormControl('');
   searchResults: SearchResult[] = [];
   isLoading = false;
-
   noResults = false;
   selectedDocument: SearchResult | null = null;
   showSearchResults = false;
-
+  
+  // Keyboard navigation properties
+  focusedResultIndex = -1; // No result focused by default
+  
   defaultPromptControl = new FormControl('');
   defaultPromptsList = [];
 
@@ -85,6 +88,8 @@ export class HomeComponent implements OnDestroy {
   urlForm: FormGroup;
   isUrlSubmitted = false;
   extractedText: string = '';
+  
+  @ViewChild('searchContainer') searchContainer!: ElementRef;
   
   private destroy$ = new Subject<void>();
 
@@ -129,6 +134,88 @@ export class HomeComponent implements OnDestroy {
     });
   }
 
+  handleSearchKeydown(event: KeyboardEvent): void {
+    // Only handle keyboard navigation when search results are showing
+    if (!this.showSearchResults || this.searchResults.length === 0 || !this.searchControl.value) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault(); // Prevent scrolling
+        this.focusNextResult();
+        break;
+        
+      case 'ArrowUp':
+        event.preventDefault(); // Prevent scrolling
+        this.focusPreviousResult();
+        break;
+        
+      case 'Enter':
+        // If a result is focused, select it
+        if (this.focusedResultIndex >= 0 && this.focusedResultIndex < this.searchResults.length) {
+          event.preventDefault(); // Prevent form submission
+          this.selectDocument(this.searchResults[this.focusedResultIndex]);
+        }
+        break;
+        
+      case 'Escape':
+        this.showSearchResults = false;
+        this.focusedResultIndex = -1;
+        break;
+    }
+    
+    this.cdr.detectChanges(); // Update UI
+  }
+
+  // Focus the next search result
+  focusNextResult(): void {
+    if (this.focusedResultIndex < this.searchResults.length - 1) {
+      this.focusedResultIndex++;
+      this.scrollToFocusedResult();
+    } else {
+      // Wrap around to the first result
+      this.focusedResultIndex = 0;
+      this.scrollToFocusedResult();
+    }
+  }
+
+  // Focus the previous search result
+  focusPreviousResult(): void {
+    if (this.focusedResultIndex > 0) {
+      this.focusedResultIndex--;
+      this.scrollToFocusedResult();
+    } else if (this.focusedResultIndex === 0) {
+      // If at first result, go back to input field
+      this.focusedResultIndex = -1;
+    } else {
+      // If no selection, go to the last item
+      this.focusedResultIndex = this.searchResults.length - 1;
+      this.scrollToFocusedResult();
+    }
+  }
+
+  // Scroll to ensure the focused result is visible
+  scrollToFocusedResult(): void {
+    // Use setTimeout to ensure the DOM has updated
+    setTimeout(() => {
+      const focusedElement = document.querySelector('.search-result-item.focused');
+      if (focusedElement) {
+        focusedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 0);
+  }
+
+  // Close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.searchContainer && !this.searchContainer.nativeElement.contains(event.target)) {
+      this.showSearchResults = false;
+      this.focusedResultIndex = -1;
+      this.cdr.detectChanges();
+    }
+  }
+
   
 
   fetchWebpage(url: string): void {
@@ -160,6 +247,8 @@ export class HomeComponent implements OnDestroy {
         this.isLoading = false;
       });
   }
+
+  
   
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -231,9 +320,91 @@ export class HomeComponent implements OnDestroy {
   }
   
 
+  
+
+  selectInputMethod(method: InputMethod): void {
+    this.selectedInputMethod = method;
+    // Reset current document when changing input methods
+    this.currentDocument = null;
+    this.selectedDocument = null;
+    this.searchResults = [];
+    this.showSearchResults = false;
+    this.isUrlSubmitted = false;
+    this.searchControl.setValue('');
+    this.urlForm.reset();
+    this.cdr.detectChanges(); // Force change detection
+  }
+
+  
+
+  
+
+  // selectDocument(document: SearchResult): void {
+  //   this.selectedDocument = document;
+  //   this.showSearchResults = false;
+    
+  //   this.currentDocument = {
+  //     id: document.id,
+  //     title: document.title,
+  //     sourceType: 'search',
+  //     selected: true
+  //   };
+    
+  //   // Store the selected document in the service
+  //   this.documentDataService.setSelectedDocument(document);
+    
+  //   this.cdr.detectChanges(); // Force change detection
+  // }
+
+ 
+ 
+// In home.component.ts, update the clearDocumentSelection() method:
+
+clearDocumentSelection(): void {
+  this.selectedDocument = null;
+  this.currentDocument = null;
+  this.selectedPrompt = null; // Clear the selected prompt
+  
+  // Clear the document from the service
+  this.documentDataService.setSelectedDocument(null);
+  
+  // Clear the search input field
+  this.searchControl.setValue('', { emitEvent: false });
+  
+  // If there's still a search term, show search results again
+  if (this.searchResults.length > 0) {
+    this.showSearchResults = true;
+  }
+  
+  this.cdr.detectChanges(); // Force change detection
+}
+
+
+  clearSearch(): void {
+    // Clear the search input
+    this.searchControl.setValue('', { emitEvent: false });
+    
+    // Clear the search results and hide the dropdown
+    this.searchResults = [];
+    this.showSearchResults = false;
+    
+    // If there's a selected document, clear it as well
+    if (this.selectedDocument) {
+      this.selectedDocument = null;
+      this.currentDocument = null;
+      this.selectedPrompt = null;
+      
+      // Clear the document from the service
+      this.documentDataService.setSelectedDocument(null);
+    }
+    
+    this.cdr.detectChanges(); // Force change detection
+  }
+
   selectDocument(document: SearchResult): void {
     this.selectedDocument = document;
     this.showSearchResults = false;
+    this.focusedResultIndex = -1; 
     
     this.searchControl.setValue(`(${document.id}) ${document.title}`, { emitEvent: false });
     
@@ -262,20 +433,7 @@ export class HomeComponent implements OnDestroy {
       });
   }
 
-  selectInputMethod(method: InputMethod): void {
-    this.selectedInputMethod = method;
-    // Reset current document when changing input methods
-    this.currentDocument = null;
-    this.selectedDocument = null;
-    this.searchResults = [];
-    this.showSearchResults = false;
-    this.isUrlSubmitted = false;
-    this.searchControl.setValue('');
-    this.urlForm.reset();
-    this.cdr.detectChanges(); // Force change detection
-  }
 
-  
 
   private setupSearchListener(): void {
     this.searchControl.valueChanges.pipe(
@@ -283,13 +441,16 @@ export class HomeComponent implements OnDestroy {
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(term => {
+      // Reset focus when search term changes
+      this.focusedResultIndex = -1;
+      
       // Clear results if search is empty
       if (!term || term.length < 3) {
         this.searchResults = [];
         this.noResults = false;
         this.isLoading = false;
         this.showSearchResults = false;
-        this.cdr.detectChanges(); // Force change detection
+        this.cdr.detectChanges();
         return;
       }
       
@@ -297,7 +458,7 @@ export class HomeComponent implements OnDestroy {
       this.isLoading = true;
       this.noResults = false;
       this.showSearchResults = true;
-      this.cdr.detectChanges(); // Force change detection
+      this.cdr.detectChanges();
       
       // Call the service for results
       this.regulatoryService.searchDocuments(term as string)
@@ -306,58 +467,19 @@ export class HomeComponent implements OnDestroy {
             this.searchResults = results;
             this.isLoading = false;
             this.noResults = results.length === 0;
-            this.cdr.detectChanges(); // Force change detection
+            this.cdr.detectChanges();
           },
           error: (err) => {
             console.error('Error searching documents', err);
             this.isLoading = false;
             this.searchResults = [];
             this.noResults = true;
-            this.cdr.detectChanges(); // Force change detection
+            this.cdr.detectChanges();
           }
         });
     });
   }
 
-  // selectDocument(document: SearchResult): void {
-  //   this.selectedDocument = document;
-  //   this.showSearchResults = false;
-    
-  //   this.currentDocument = {
-  //     id: document.id,
-  //     title: document.title,
-  //     sourceType: 'search',
-  //     selected: true
-  //   };
-    
-  //   // Store the selected document in the service
-  //   this.documentDataService.setSelectedDocument(document);
-    
-  //   this.cdr.detectChanges(); // Force change detection
-  // }
-
- 
- 
-  clearDocumentSelection(): void {
-    this.selectedDocument = null;
-    this.currentDocument = null;
-    
-    // Clear the document from the service
-    this.documentDataService.setSelectedDocument(null);
-    
-    // If there's still a search term, show search results again
-    if (this.searchControl.value && this.searchResults.length > 0) {
-      this.showSearchResults = true;
-    }
-    
-    this.cdr.detectChanges(); // Force change detection
-  }
-  clearSearch(): void {
-    this.searchControl.setValue('');
-    this.searchResults = [];
-    this.showSearchResults = false;
-    this.cdr.detectChanges(); // Force change detection
-  }
 
   onUrlSubmit(): void {
     if (this.urlForm.valid) {

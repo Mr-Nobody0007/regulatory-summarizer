@@ -200,76 +200,63 @@
     }
   }
 
-  .search-result-item {
-    display: flex;
-    align-items: flex-start;
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    cursor: pointer;
-    transition: background-color 0.2s;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    &:hover {
-      background-color: #f5f5f5;
-    }
-    
-    mat-icon {
-      color: #5f6368;
-      margin-right: 12px;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
+  // Add this to your existing SCSS file - only showing the modified section
 
-    .search-footer-info {
-      margin-top: 16px;
-      margin-bottom: 20px;
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover, &.focused {
+    background-color: #f5f5f5;
+  }
+  
+  // Additional styling for keyboard focus
+  &.focused {
+    outline: 2px solid #004aa5;
+    position: relative;
+    z-index: 2;
+  }
+  
+  // Rest of your existing styles
+  mat-icon {
+    color: #5f6368;
+    margin-right: 12px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .result-details {
+    flex: 1;
+    
+    .result-title {
       font-size: 14px;
-      color: rgba(0, 0, 0, 0.6);
-      text-align: left;
+      color: rgba(0, 0, 0, 0.87);
+      margin-bottom: 4px;
       
       @media (min-width: 1600px) {
-        margin-top: 20px;
-        margin-bottom: 24px;
-        font-size: 15px;
-      }
-      
-      a {
-        color: #004aa5;
-        text-decoration: none;
-        
-        &:hover {
-          text-decoration: underline;
-        }
+        font-size: 16px;
       }
     }
     
-    .result-details {
-      flex: 1;
+    .result-meta {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.6);
       
-      .result-title {
+      @media (min-width: 1600px) {
         font-size: 14px;
-        color: rgba(0, 0, 0, 0.87);
-        margin-bottom: 4px;
-        
-        @media (min-width: 1600px) {
-          font-size: 16px;
-        }
-      }
-      
-      .result-meta {
-        font-size: 12px;
-        color: rgba(0, 0, 0, 0.6);
-        
-        @media (min-width: 1600px) {
-          font-size: 14px;
-        }
       }
     }
   }
+}
 
   .no-results-dropdown {
     padding: 16px;

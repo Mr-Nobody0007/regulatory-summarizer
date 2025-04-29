@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { DocumentSummaryComponent } from './components/document-summary/document-summary.component';
+import { HomeComponent } from './components/regulatory-summarizer/document-view/components/home/home.component';
+import { DocumentViewComponent } from './components/regulatory-summarizer/document-view/document-view.component';
 
 export const routes: Routes = [
   {
@@ -9,11 +9,11 @@ export const routes: Routes = [
   },
   {
     path: 'document/:id',
-    component: DocumentSummaryComponent
+    component: DocumentViewComponent
   },
   {
     path: 'document/:id/:isUrl',
-    component: DocumentSummaryComponent
+    component: DocumentViewComponent
   },
   {
     path: '**',

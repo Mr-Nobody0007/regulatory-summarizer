@@ -144,13 +144,15 @@ export class DocumentViewComponent implements OnInit, OnDestroy {
   /**
    * Load prompts for the document type
    */
-  private loadPrompts(documentType: string): void {
-    this.promptService.getPromptsByDocumentType(documentType)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(prompts => {
-        this.prompts = prompts;
-      });
-  }
+  // In document-view.component.ts
+private loadPrompts(documentType: string): void {
+  this.promptService.getPromptsByDocumentType(documentType)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(prompts => {
+      this.prompts = prompts;
+      console.log('Loaded prompts:', prompts); // Add this log to debug
+    });
+}
   
   /**
    * Add a user message to the chat

@@ -18,7 +18,9 @@ export interface DocumentSummary {
   documentDto?: any;
   // PDF URL from documentDto
   pdfUrl?: string;
-  regulationRequestId?:number;
+  regulationRequestId?: number;
+  // Flag to indicate if this is a URL-based document
+  isUrl?: boolean;
 }
 
 export interface PromptResponse {
@@ -144,7 +146,10 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       console.log('Prompt from state:', promptText);
       
       if (documentId) {
-        this.loadDocumentSummary(documentId, isUrl, promptText);
+        // If isUrl is true, we need to decode the documentId which would be an encoded URL
+        const inputValue = isUrl ? decodeURIComponent(documentId) : documentId;
+        
+        this.loadDocumentSummary(inputValue, isUrl, promptText);
       } else {
         this.error = 'No document specified';
         this.isLoading = false;
@@ -170,7 +175,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     this.destroy$.complete();
   }
 
-  private loadDocumentSummary(documentId: string, isUrl: boolean, promptText: string): void {
+  private loadDocumentSummary(input: string, isUrl: boolean, promptText: string): void {
     this.isLoading = true;
     this.isApiProcessing = true;
     this.processStep = 1;
@@ -181,19 +186,20 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     
     // First, set up the component with loading state
     this.documentSummary = {
-      id: documentId,
+      id: input,
       title: 'Loading...',
       summary: '',
       publicationDate: '',
       agency: '',
-      documentType: ''
+      documentType: '',
+      isUrl: isUrl // Store whether this is a URL-based document
     };
     
     // Add an empty response that's marked as loading
     this.addDefaultSummaryPrompt('', promptText);
     
     this.regulatoryService
-      .summarizeDocumentWithPrompt(documentId, promptText, isUrl)
+      .summarizeDocumentWithPrompt(input, promptText, isUrl)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -342,7 +348,7 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       answer: summaryText || '',
       timestamp: new Date(),
       isActive: true,
-      isLoading: isLoading ,
+      isLoading: isLoading,
       
     };
   
@@ -354,9 +360,6 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     // The loading state will be updated in the loadDocumentSummary method
     // when the API response is received.
   }
-  
-  // Modify the loadDocumentSummary method to handle loading properly
-  
 
   toggleExtendedMetadata(): void {
     this.showExtendedMetadata = !this.showExtendedMetadata;
@@ -393,8 +396,6 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     this.submitQuestion(questionText);
   }
 
-  // Changes to make in the submitQuestion method in your document-summary.component.ts file
-
   private submitQuestion(questionText: string): void {
     if (!this.documentSummary) {
       console.error('No document summary available');
@@ -423,8 +424,11 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     
     this.questionControl.reset();
     
+    // Pass the isUrl flag to the service method
+    const isUrl = this.documentSummary.isUrl || false;
+    
     this.regulatoryService
-      .askDocumentQuestion(this.documentSummary.id, questionText)
+      .askDocumentQuestion(this.documentSummary.id, questionText, isUrl)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -485,7 +489,20 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
       return;
     }
     
-    // Use the stored PDF URL from documentDto if available
+    // For URL-based documents, if they have a PDF URL, use it directly
+    if (this.documentSummary.isUrl) {
+      if (this.documentSummary.pdfUrl) {
+        window.open(this.documentSummary.pdfUrl, '_blank');
+        console.log('Opening PDF URL for external document:', this.documentSummary.pdfUrl);
+      } else {
+        // For URL documents without PDF link, redirect to the original URL
+        window.open(this.documentSummary.id, '_blank');
+        console.log('Opening original URL as no PDF link available:', this.documentSummary.id);
+      }
+      return;
+    }
+    
+    // For Federal Register documents, use the PDF URL if available
     if (this.documentSummary.pdfUrl) {
       window.open(this.documentSummary.pdfUrl, '_blank');
       console.log('Opening PDF URL from documentDto:', this.documentSummary.pdfUrl);
@@ -563,7 +580,6 @@ export class DocumentSummaryComponent implements OnInit, AfterViewChecked {
     document.body.removeChild(a);
   }
 
-  
   provideFeedback(responseId: string): void {
     // Find the prompt response to get the requestId
     const promptResponse = this.promptResponses.find(pr => pr.id === responseId);

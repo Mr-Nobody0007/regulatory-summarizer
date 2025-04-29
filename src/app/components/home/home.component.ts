@@ -491,6 +491,29 @@ clearDocumentSelection(): void {
         url: url,
         selected: true
       };
+  
+      // Check for default prompts for URL inputs
+      this.promptService.getDefaultSummaryPrompt('URL')
+        .subscribe(prompt => {
+          if (prompt) {
+            this.selectedPrompt = prompt;
+            // Also store it in the service
+            this.documentDataService.setSelectedPrompt(prompt);
+            console.log('Selected default prompt for URL:', prompt);
+          } else {
+            // Fallback to a generic prompt
+            const genericPrompt: Prompt = {
+              purpose: "Summary",
+              isDefault: true,
+              label: "Provide a concise summary",
+              prompt: "Provide a concise summary of this document highlighting key points, requirements, and implications.",
+              documentType: "URL"
+            };
+            this.selectedPrompt = genericPrompt;
+            this.documentDataService.setSelectedPrompt(genericPrompt);
+          }
+          this.cdr.detectChanges();
+        });
       
       this.cdr.detectChanges(); // Force change detection
     }
@@ -517,8 +540,11 @@ clearDocumentSelection(): void {
           state: { prompt: promptText }
         });
       } else if (this.currentDocument.sourceType === 'url' && this.currentDocument.url) {
-        // Encode the URL to make it safe for navigation
+        // For URL-based documents:
+        // 1. Encode the URL to make it safe for navigation
         const encodedUrl = encodeURIComponent(this.currentDocument.url);
+        
+        // 2. Pass the URL and set isUrl=true flag
         this.router.navigate(['/document', encodedUrl, 'true'], {
           state: { prompt: promptText }
         });

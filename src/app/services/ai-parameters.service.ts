@@ -1,20 +1,27 @@
 // src/app/services/ai-parameters.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of, from } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 export interface AIParameters {
   temperature: number;
   nucleusSampling: number;
   seed: string;
-  chunkMethod: string; // Changed from number to string
+  chunkMethod: string; 
   chunkMethodValue: number;
+}
+
+export interface APITuningParameters {
+  openAITemperature: string;
+  openAITopP: string;
+  openAISeed: string;
 }
 
 const DEFAULT_PARAMETERS: AIParameters = {
   temperature: 0,
   nucleusSampling: 0,
   seed: '100',
-  chunkMethod: "Character", // Changed from 0 to "Character"
+  chunkMethod: "Character",
   chunkMethodValue: 0
 };
 
@@ -24,11 +31,57 @@ const DEFAULT_PARAMETERS: AIParameters = {
 export class AIParametersService {
   private storageKey = 'ai_parameters';
   private parametersSubject: BehaviorSubject<AIParameters>;
+  private apiBaseUrl = "http://ah.corp:8007"; // Update with your actual base URL
+  private tuningEndpoint = "/api/v1/ai-parameters/default-values"; // Update with the actual endpoint
   
   constructor() {
     // Initialize from localStorage or use defaults
     const savedParameters = this.loadFromStorage();
     this.parametersSubject = new BehaviorSubject<AIParameters>(savedParameters);
+    
+    // Fetch default values from API on initialization
+    this.fetchDefaultParameters();
+  }
+
+  /**
+   * Fetch default AI parameters from API
+   */
+  fetchDefaultParameters(): Observable<AIParameters> {
+    return from(
+      fetch(`${this.apiBaseUrl}${this.tuningEndpoint}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+    ).pipe(
+      map((apiParams: APITuningParameters) => {
+        // Convert API response to AIParameters format
+        const params: AIParameters = {
+          temperature: parseFloat(apiParams.openAITemperature) || 0,
+          nucleusSampling: parseFloat(apiParams.openAITopP) || 0,
+          seed: apiParams.openAISeed || '100',
+          chunkMethod: this.getCurrentParameters().chunkMethod, // Keep existing value
+          chunkMethodValue: this.getCurrentParameters().chunkMethodValue // Keep existing value
+        };
+        
+        // Update parameters with values from API
+        this.updateParameters(params);
+        
+        return params;
+      }),
+      catchError(error => {
+        console.error('Error fetching default AI parameters:', error);
+        // If there's an error, keep using current parameters
+        return of(this.getCurrentParameters());
+      })
+    );
   }
 
   /**
@@ -57,7 +110,13 @@ export class AIParametersService {
    * Reset to default parameters
    */
   resetToDefaults(): void {
-    this.updateParameters(DEFAULT_PARAMETERS);
+    // Fetch defaults from API first, fallback to hardcoded defaults if API fails
+    this.fetchDefaultParameters().subscribe({
+      error: () => {
+        // If API call fails, use hardcoded defaults
+        this.updateParameters(DEFAULT_PARAMETERS);
+      }
+    });
   }
 
   /**

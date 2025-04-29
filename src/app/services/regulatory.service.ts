@@ -12,7 +12,7 @@ import { AIParametersService } from './ai-parameters.service';
 export interface QuestionResponse {
   id: string;
   answer: string;
-  requestId?: number; // Add requestId field
+  requestId?: number;
 }
 
 export interface FeedbackResponse {
@@ -27,6 +27,7 @@ export interface FeedbackItem {
   feedbackScore: number | null;
 }
 
+// Legacy payload for orchestrate endpoint
 export interface SummaryRequestSingle {
   documentNumber: string;
   prompt: string;
@@ -36,6 +37,26 @@ export interface SummaryRequestSingle {
   chunkMethodVal: number;
   signalRConnId: string;
   seed: number;
+  userName: string;
+}
+
+// New payload structure for orchestrate-v2 endpoint
+export interface DocumentInfo {
+  documentId: string;     // Document number for search input, URL for URL input
+  documentSource: string; // Usually empty
+  documentURL: string;    // Empty for search input, URL for URL input
+  documentText: string;   // Usually empty unless we have direct text
+}
+
+export interface OrchestrateV2Request {
+  document: DocumentInfo[];
+  prompt: string;
+  temperature: number;
+  topP: number;
+  seed: number;
+  chunkMethod: string;
+  chunkMethodVal: number;
+  signalRConnId: string;
   userName: string;
 }
 
@@ -56,20 +77,15 @@ export interface DocumentTextPathResponse {
   [key: string]: any;
 }
 
-export interface SummaryRequest {
-  textFilePath: string;
-  prompt: string;
-  temperature: number;
-  topP: number;
-  seed: number;
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class RegulatoryService {
   private federalRegisterApiUrl = 'https://www.federalregister.gov/api/v1/documents';
   private apiBaseUrl = "http://ah.corp:8007";
+  private orchestrateEndpoint = "/api/v1/open-ai/orchestrate-send-prompt";
+  private orchestrateV2Endpoint = "/api/v1/open-ai/orchestrate-v2-send-prompt";
+  private userName = "User"; // You might want to get this from a user service
   
   constructor(
     private documentDataService: DocumentDataService,
@@ -78,162 +94,217 @@ export class RegulatoryService {
   ) { }
 
   /**
- * Map the feedback submission to the API format
- * @param feedback The feedback submission from the dialog
- * @returns Array of feedback items in API format
- */
-private mapFeedbackToApiFormat(feedback: FeedbackSubmission): FeedbackItem[] {
-  // Create an array of feedback objects as required by the API
-  const feedbackArray: FeedbackItem[] = [
-    {
-      surveyQuestionId: 2, // Accuracy
-      feedbackText: null, 
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.accuracy
-    },
-    {
-      surveyQuestionId: 3, // Completeness
-      feedbackText: null,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.completeness
-    },
-    {
-      surveyQuestionId: 4, // Consistency
-      feedbackText: null,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.consistency
-    },
-    {
-      surveyQuestionId: 5, // Clarity and readability
-      feedbackText: null,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.clarity
-    },
-    {
-      surveyQuestionId: 6, // Time Savings
-      feedbackText: null,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.timeSavings
-    },
-    {
-      surveyQuestionId: 7, // Usefulness
-      feedbackText: null,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: feedback.usefulness
+   * Map the feedback submission to the API format
+   * @param feedback The feedback submission from the dialog
+   * @returns Array of feedback items in API format
+   */
+  private mapFeedbackToApiFormat(feedback: FeedbackSubmission): FeedbackItem[] {
+    // Create an array of feedback objects as required by the API
+    const feedbackArray: FeedbackItem[] = [
+      {
+        surveyQuestionId: 2, // Accuracy
+        feedbackText: null, 
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.accuracy
+      },
+      {
+        surveyQuestionId: 3, // Completeness
+        feedbackText: null,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.completeness
+      },
+      {
+        surveyQuestionId: 4, // Consistency
+        feedbackText: null,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.consistency
+      },
+      {
+        surveyQuestionId: 5, // Clarity and readability
+        feedbackText: null,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.clarity
+      },
+      {
+        surveyQuestionId: 6, // Time Savings
+        feedbackText: null,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.timeSavings
+      },
+      {
+        surveyQuestionId: 7, // Usefulness
+        feedbackText: null,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: feedback.usefulness
+      }
+    ];
+
+    // Add comments if provided
+    if (feedback.comments && feedback.comments.trim().length > 0) {
+      feedbackArray.push({
+        surveyQuestionId: 9, // Comments
+        feedbackText: feedback.comments,
+        regulationRequestId: feedback.responseId,
+        feedbackScore: null
+      });
     }
-  ];
 
-  // Add comments if provided
-  if (feedback.comments && feedback.comments.trim().length > 0) {
-    feedbackArray.push({
-      surveyQuestionId: 9, // Comments
-      feedbackText: feedback.comments,
-      regulationRequestId: feedback.responseId,
-      feedbackScore: null
-    });
+    return feedbackArray;
   }
-
-  return feedbackArray;
-}
-
-  
 
   /**
- * Submit feedback to the API
- * @param feedback The feedback from the dialog
- * @returns Observable with success/failure information
- */
- /**
- * Submit feedback to the API
- * @param feedback The feedback from the dialog
- * @returns Observable with success/failure information
- */
-submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
-  const apiUrl = 'https://ah-139282-001.sdi.corp.bankofamrica.com:8007/api/v1/Feedback/send-feedbacks';
-  
-  // Map the feedback to the API format
-  const feedbackData: FeedbackItem[] = this.mapFeedbackToApiFormat(feedback);
-  
-  return this.http.post<FeedbackResponse>(apiUrl, feedbackData)
-    .pipe(
+   * Submit feedback to the API
+   * @param feedback The feedback from the dialog
+   * @returns Observable with success/failure information
+   */
+  submitFeedback(feedback: FeedbackSubmission): Observable<FeedbackResponse> {
+    const apiUrl = 'https://ah-139282-001.sdi.corp.bankofamrica.com:8007/api/v1/Feedback/send-feedbacks';
+    
+    // Map the feedback to the API format
+    const feedbackData: FeedbackItem[] = this.mapFeedbackToApiFormat(feedback);
+    
+    return this.http.post<FeedbackResponse>(apiUrl, feedbackData)
+      .pipe(
+        map(response => {
+          console.log('Feedback API response:', response);
+          return { success: true, message: 'Feedback submitted successfully' };
+        }),
+        catchError(error => {
+          console.error('Error submitting feedback to API:', error);
+          return of({ 
+            success: false, 
+            message: `Failed to submit feedback: ${error.message || 'Unknown error'}` 
+          });
+        })
+      );
+  }
+
+  private formatDateYYYYMMDD(dateString: string | null): string {
+    if (!dateString) return '';
+    
+    try {
+      // Check if the date is already in YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        // Parse parts directly to avoid timezone issues
+        return dateString;
+      }
+      
+      // For dates with time component (like API responses), use UTC methods
+      const date = new Date(dateString);
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString || '';
+    }
+  }
+
+  /**
+   * New method using orchestrate-v2 endpoint that can handle both document IDs and URLs
+   * @param input Document ID or URL
+   * @param prompt Prompt text
+   * @param isUrl Flag indicating if input is a URL
+   * @returns Observable with API response
+   */
+  getSummaryV2(input: string, prompt: string, isUrl: boolean = false): Observable<any> {
+    const url = `${this.apiBaseUrl}${this.orchestrateV2Endpoint}`;
+    
+    // Get current AI parameters
+    const aiParams = this.aiParametersService.getCurrentParameters();
+    
+    // Create document info based on input type
+    const documentInfo: DocumentInfo = {
+      documentId: input,
+      documentSource: '',
+      documentURL: isUrl ? input : '',
+      documentText: ''
+    };
+    
+    // Create payload using the new structure
+    const payload: OrchestrateV2Request = {
+      document: [documentInfo],
+      prompt: prompt,
+      temperature: aiParams.temperature,
+      topP: aiParams.nucleusSampling,
+      seed: parseInt(aiParams.seed) || 100,
+      chunkMethod: aiParams.chunkMethod,
+      chunkMethodVal: aiParams.chunkMethodValue,
+      signalRConnId: '',
+      userName: this.userName
+    };
+
+    return from(
+      fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+    ).pipe(
       map(response => {
-        console.log('Feedback API response:', response);
-        return { success: true, message: 'Feedback submitted successfully' };
+        console.log('Orchestrate V2 response:', response);
+        return response;
       }),
       catchError(error => {
-        console.error('Error submitting feedback to API:', error);
-        return of({ 
-          success: false, 
-          message: `Failed to submit feedback: ${error.message || 'Unknown error'}` 
-        });
+        console.error("Error generating summary with orchestrate-v2", error);
+        return throwError(() => new Error(error.message || "Error generating summary"));
       })
     );
-}
-
-private formatDateYYYYMMDD(dateString: string | null): string {
-  if (!dateString) return '';
-  
-  try {
-    // Check if the date is already in YYYY-MM-DD format
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      // Parse parts directly to avoid timezone issues
-      return dateString;
-    }
-    
-    // For dates with time component (like API responses), use UTC methods
-    const date = new Date(dateString);
-    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString || '';
   }
-}
 
-
+  /**
+   * Legacy method using the original orchestrate endpoint (keeping for backward compatibility)
+   */
   getSingleShotSummary(documentNumber: string, prompt: string): Observable<any> {
-  const url = new URL('http://ah.corp:8007/api/v1/open-ai/orchestrate-send-prompt');
-  
-  // Get current AI parameters
-  const aiParams = this.aiParametersService.getCurrentParameters();
-  
-  // Updated payload to match new API requirements
-  const payload: SummaryRequestSingle = {
-    documentNumber: documentNumber,
-    prompt: prompt,
-    temperature: aiParams.temperature,
-    topP: aiParams.nucleusSampling,
-    seed: parseInt(aiParams.seed) || 100,
-    signalRConnId: '',
-    chunkMethod: aiParams.chunkMethod, // Now passing string value directly
-    chunkMethodVal: aiParams.chunkMethodValue,
-    userName: 'Vatsal'
-  };
+    const url = `${this.apiBaseUrl}${this.orchestrateEndpoint}`;
+    
+    // Get current AI parameters
+    const aiParams = this.aiParametersService.getCurrentParameters();
+    
+    // Legacy payload format
+    const payload: SummaryRequestSingle = {
+      documentNumber: documentNumber,
+      prompt: prompt,
+      temperature: aiParams.temperature,
+      topP: aiParams.nucleusSampling,
+      seed: parseInt(aiParams.seed) || 100,
+      signalRConnId: '',
+      chunkMethod: aiParams.chunkMethod,
+      chunkMethodVal: aiParams.chunkMethodValue,
+      userName: this.userName
+    };
 
-  return from(
-    fetch(`${url}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error('Http error');
-      }
-      return response.json();
-    })
-  ).pipe(
-    map(response => {
-      console.log('Single shot summary response:', response);
-      return response;
-    }),
-    catchError(error => {
-      console.error("Error generating summary", error);
-      return throwError(() => new Error(error.message || "error generating summary"));
-    })
-  );
-}
+    return from(
+      fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Http error');
+        }
+        return response.json();
+      })
+    ).pipe(
+      map(response => {
+        console.log('Single shot summary response:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error("Error generating summary", error);
+        return throwError(() => new Error(error.message || "error generating summary"));
+      })
+    );
+  }
 
   searchDocuments(searchTerm: string): Observable<SearchResult[]> {
     const url = new URL(this.federalRegisterApiUrl);
@@ -272,16 +343,16 @@ private formatDateYYYYMMDD(dateString: string | null): string {
             title: item.title,
             documentType: item.type || 'Document',
             agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
-            publicationDate:this.formatDateYYYYMMDD(item.publication_date),
+            publicationDate: this.formatDateYYYYMMDD(item.publication_date),
             documentNumber: item.document_number,
             startPage: item.start_page,
             endPage: item.end_page,
             cfrReferences: this.formatCfrReferences(item.cfr_references),
             docketIds: item.docket_ids || [],
             regulationIdNumbers: item.regulation_id_numbers || [],
-            effectiveDate: item.effective_on ? this.formatDateYYYYMMDD(item.effective_on)  : undefined,
+            effectiveDate: item.effective_on ? this.formatDateYYYYMMDD(item.effective_on) : undefined,
             citation: item.citation,
-            rin: item.regulation_id_numbers[0]
+            rin: item.regulation_id_numbers?.[0]
           }));
         }
         return [];
@@ -314,44 +385,16 @@ private formatDateYYYYMMDD(dateString: string | null): string {
     );
   }
 
-  getDocumentDetails(documentId: string): Observable<any> {
-    const url = `${this.federalRegisterApiUrl}/${documentId}`;
-    
-    return from(
-      fetch(url).then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-    ).pipe(
-      map(item => ({
-        id: item.document_number,
-        title: item.title,
-        documentType: item.type || 'Document',
-        agencyName: item.agencies?.[0]?.name || 'Unknown Agency',
-        publicationDate: this.formatDateYYYYMMDD(item.publication_date),
-        rin: Array.isArray(item.regulation_id_numbers) && item.regulation_id_numbers.length > 0 ? item.regulation_id_numbers[0] : 'N/A',
-        citation: item.citation || 'N/A'
-      })),
-      catchError(error => {
-        console.error('Error fetching document details', error);
-        return of(null);
-      })
-    );
-  }
-
-  // Updated method to process documentDto data
-  summarizeDocumentWithPrompt(documentId: string, prompt: string, isUrl: boolean = false): Observable<DocumentSummary> {
+  /**
+   * Updated method to use orchestrate-v2 endpoint for both document IDs and URLs
+   */
+  summarizeDocumentWithPrompt(input: string, prompt: string, isUrl: boolean = false): Observable<DocumentSummary> {
     const processStep = new Subject<number>();
     
     processStep.next(1);
     
-    if (isUrl) {
-      // Same implementation as before for URLs
-    }
-    
-    return this.getSingleShotSummary(documentId, prompt).pipe(
+    // Use the new orchestrate-v2 endpoint for both document IDs and URLs
+    return this.getSummaryV2(input, prompt, isUrl).pipe(
       map(response => {
         // Extract the summary and documentDto from the response
         const summary = response.openAIResponse || 'No summary available';
@@ -361,13 +404,13 @@ private formatDateYYYYMMDD(dateString: string | null): string {
         
         // Create the DocumentSummary object using data from documentDto if available
         const result: DocumentSummary = {
-          id: documentId,
-          title: documentDto?.title || `Document ${documentId}`,
+          id: input,
+          title: documentDto?.title || `Document ${input}`,
           publicationDate: this.formatDateYYYYMMDD(documentDto?.publication_date) || this.formatDateYYYYMMDD(new Date().toISOString()),
           agency: this.extractAgencyNames(documentDto?.agencies) || 'Unknown Agency',
           documentType: documentDto?.type || 'Document',
           summary: summary,
-          documentNumber: documentDto?.document_number || documentId,
+          documentNumber: documentDto?.document_number || input,
           startPage: documentDto?.start_page,
           endPage: documentDto?.end_page,
           cfrReferences: this.formatCfrReferences(documentDto?.cfr_references) || [],
@@ -385,7 +428,34 @@ private formatDateYYYYMMDD(dateString: string | null): string {
       }),
       catchError(error => {
         console.error('Error in document summarization process', error);
-        return this.fallbackToFederalRegisterApi(documentId, processStep);
+        return this.fallbackToFederalRegisterApi(input, processStep);
+      })
+    );
+  }
+
+  /**
+   * Updated to use orchestrate-v2 endpoint for asking questions
+   */
+  askDocumentQuestion(input: string, question: string, isUrl: boolean = false): Observable<QuestionResponse> {
+    return this.getSummaryV2(input, question, isUrl).pipe(
+      map(response => {
+        // Extract answer from the response
+        const answer = response.openAIResponse || 'No answer available';
+        // Get the regulationRequestId from the response
+        const regulationRequestId = typeof response.regulationRequestId === 'number' ? 
+          response.regulationRequestId : (parseInt(response.regulationRequestId) || Date.now());
+        // Generate a unique ID for the response
+        const responseId = `q-${Date.now()}`;
+        
+        return {
+          id: responseId,
+          answer: answer,
+          requestId: regulationRequestId
+        };
+      }),
+      catchError(error => {
+        console.error('Error asking question', error);
+        return this.getFallbackQuestionAnswer(question);
       })
     );
   }
@@ -419,6 +489,18 @@ private formatDateYYYYMMDD(dateString: string | null): string {
   }
 
   private fallbackToFederalRegisterApi(documentId: string, processStep?: Subject<number>): Observable<DocumentSummary> {
+    // Only attempt to use Federal Register API if this isn't a URL
+    if (documentId.startsWith('http')) {
+      return of({
+        id: documentId,
+        title: 'External Document',
+        publicationDate: this.formatDateYYYYMMDD(new Date().toISOString()),
+        agency: 'Unknown Agency',
+        documentType: 'External Document',
+        summary: 'Unable to process external document. Please try again later.'
+      });
+    }
+    
     const url = `${this.federalRegisterApiUrl}/${documentId}`;
     
     if (processStep) {
@@ -436,7 +518,7 @@ private formatDateYYYYMMDD(dateString: string | null): string {
       map(item => ({
         id: item.document_number,
         title: item.title,
-        publicationDate: this.formatDateYYYYMMDD(new Date().toISOString()),
+        publicationDate: this.formatDateYYYYMMDD(item.publication_date),
         agency: item.agencies?.[0]?.name || 'Unknown Agency',
         documentType: item.type || 'Document',
         summary: item.abstract || 'Failed to generate AI summary. Showing document abstract instead.',
@@ -446,9 +528,9 @@ private formatDateYYYYMMDD(dateString: string | null): string {
         cfrReferences: this.formatCfrReferences(item.cfr_references),
         docketIds: item.docket_ids || [],
         regulationIdNumbers: item.regulation_id_numbers || [],
-        effectiveDate: item.effective_on ? new Date(item.effective_on).toLocaleDateString() : undefined,
+        effectiveDate: item.effective_on ? this.formatDateYYYYMMDD(item.effective_on) : undefined,
         // Try to construct a PDF URL for the Federal Register document
-        pdfUrl: `https://www.govinfo.gov/content/pkg/FR-${new Date(item.publication_date).toISOString().split('T')[0]}/pdf/${item.document_number}.pdf`
+        pdfUrl: `https://www.govinfo.gov/content/pkg/FR-${this.formatDateYYYYMMDD(item.publication_date)}/pdf/${item.document_number}.pdf`
       })),
       catchError(error => {
         console.error('Error in fallback summarization', error);
@@ -461,31 +543,6 @@ private formatDateYYYYMMDD(dateString: string | null): string {
           documentType: 'Document',
           summary: 'Unable to retrieve document summary'
         });
-      })
-    );
-  }
-
-
-  
-  askDocumentQuestion(documentId: string, question: string): Observable<QuestionResponse> {
-    return this.getSingleShotSummary(documentId, question).pipe(
-      map(response => {
-        // Extract answer from the response
-        const answer = response.openAIResponse || 'No answer available';
-        // Get the regulationRequestId from the response
-        const regulationRequestId = typeof response.regulationRequestId === 'number' ? response.regulationRequestId : (parseInt(response.regulationRequestId) || Date.now());
-        // Generate a unique ID for the response
-        const responseId = `q-${Date.now()}`;
-        
-        return {
-          id: responseId,
-          answer: answer,
-          requestId: regulationRequestId // Pass the regulationRequestId to the component
-        };
-      }),
-      catchError(error => {
-        console.error('Error asking question', error);
-        return this.getFallbackQuestionAnswer(question);
       })
     );
   }

@@ -1,0 +1,23 @@
+<!-- document-header.component.html - updated to use document-metadata -->
+<div class="document-header">
+  <div class="back-navigation">
+    <button mat-button color="primary" (click)="goBack()">
+      <mat-icon>chevron_left</mat-icon>
+      Search for another document
+    </button>
+  </div>
+  
+  <mat-card class="document-header-card" *ngIf="document">
+    <mat-card-content>
+      <div class="document-title-section">
+        <h2>{{ document.id || '' }} {{ document.title || '' }}</h2>
+        <a href="javascript:void(0)" class="pdf-link" (click)="openPdf()">
+          <span class="label">PDF</span>
+        </a>
+        
+        <!-- Use the document-metadata component -->
+        <app-document-metadata [document]="document"></app-document-metadata>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

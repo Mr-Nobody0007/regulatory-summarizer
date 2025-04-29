@@ -1,0 +1,58 @@
+<!-- document-metadata.component.html -->
+<div class="document-metadata-container" *ngIf="document">
+    <div class="basic-metadata">
+      <div class="meta-item">
+        <span>Published {{ document.publicationDate || 'N/A' }}</span>
+        <span class="meta-bullet">•</span>
+        <span>Agency: {{ document.agency || 'N/A' }}</span>
+        <span class="meta-bullet">•</span>
+        <span>Document type: {{ document.documentType || 'N/A' }}</span>
+      </div>
+      <button mat-button color="primary" class="more-button" (click)="toggleExtendedMetadata()">
+        {{ showExtendedMetadata ? 'Less' : 'More' }}
+        <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+    
+    <!-- Extended metadata section -->
+    <div class="extended-metadata" *ngIf="showExtendedMetadata">
+      <div class="extended-meta-item" *ngIf="document.startPage && document.endPage">
+        <span class="label">Pages:</span>
+        <span>
+          {{ document.startPage }}-{{ document.endPage }} ({{ 
+            document.endPage - document.startPage + 1
+          }} pages)
+        </span>
+      </div>
+      <div class="extended-meta-item" *ngIf="document.cfrReferences && document.cfrReferences.length > 0">
+        <span class="label">CFR:</span>
+        <span>{{ document.cfrReferences.join(', ') }}</span>
+      </div>
+      <div class="extended-meta-item" *ngIf="document.docketIds && document.docketIds.length > 0">
+        <span class="label">Docket No:</span>
+        <span>{{ document.docketIds.join(', ') }}</span>
+      </div>
+      <div class="extended-meta-item" *ngIf="document.regulationIdNumbers && document.regulationIdNumbers.length > 0">
+        <span class="label">RIN:</span>
+        <span>{{ document.regulationIdNumbers.join(', ') }}</span>
+      </div>
+      <div class="extended-meta-item" *ngIf="document.documentNumber">
+        <span class="label">Document No:</span>
+        <span>{{ document.documentNumber }}</span>
+      </div>
+      <div class="extended-meta-item" *ngIf="document.effectiveDate">
+        <span class="label">Dates:</span>
+        <span>This final rule is effective {{ document.effectiveDate }}</span>
+      </div>
+      <!-- Add citation if available from documentDto -->
+      <div class="extended-meta-item" *ngIf="document.documentDto?.citation">
+        <span class="label">Citation:</span>
+        <span>{{ document.documentDto.citation }}</span>
+      </div>
+      <!-- Add comment close date if available from documentDto -->
+      <div class="extended-meta-item" *ngIf="document.documentDto?.comments_close_on">
+        <span class="label">Comments Close On:</span>
+        <span>{{ formatDate(document.documentDto.comments_close_on) }}</span>
+      </div>
+    </div>
+  </div>

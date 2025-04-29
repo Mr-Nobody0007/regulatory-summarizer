@@ -1,0 +1,24 @@
+<!-- user-question-input.component.html -->
+<div class="question-input-container">
+    <mat-form-field appearance="outline" class="input-field">
+      <textarea
+        matInput
+        [formControl]="questionControl"
+        placeholder="Ask a question about this document..."
+        rows="3"
+        [maxlength]="questionCharLimit"
+        (keydown)="handleKeyDown($event)"
+      ></textarea>
+      <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
+    </mat-form-field>
+    
+    <div class="input-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        [disabled]="questionControl.invalid"
+        (click)="submitQuestion()">
+        Send
+      </button>
+    </div>
+  </div>

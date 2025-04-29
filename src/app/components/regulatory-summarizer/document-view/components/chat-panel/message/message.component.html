@@ -1,0 +1,42 @@
+<!-- message.component.html -->
+<div class="message" [ngClass]="{'user-message': message.sender === MessageSender.USER, 'ai-message': message.sender === MessageSender.AI}">
+    <!-- User Message -->
+    <div *ngIf="message.sender === MessageSender.USER" class="user-message-content">
+      <div class="message-text">{{ message.content }}</div>
+      <div class="message-timestamp">{{ message.timestamp | date:'short' }}</div>
+    </div>
+    
+    <!-- AI Message -->
+    <div *ngIf="message.sender === MessageSender.AI" class="ai-message-content">
+      <!-- Loading State -->
+      <div *ngIf="message.isLoading" class="message-loading">
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Thinking...</span>
+      </div>
+      
+      <!-- Message Content -->
+      <div *ngIf="!message.isLoading" class="message-text">{{ message.content }}</div>
+      
+      <!-- Message Metadata -->
+      <div *ngIf="!message.isLoading" class="message-metadata">
+        <div class="message-timestamp">{{ message.timestamp | date:'short' }}</div>
+        <div *ngIf="message.requestId" class="message-request-id">Request ID: {{ message.requestId }}</div>
+      </div>
+      
+      <!-- Message Actions -->
+      <div *ngIf="!message.isLoading" class="message-actions">
+        <button mat-button class="action-button" (click)="onCopy()">
+          <mat-icon>content_copy</mat-icon>
+          Copy
+        </button>
+        <button mat-button class="action-button" (click)="onDownload()">
+          <mat-icon>download</mat-icon>
+          Download
+        </button>
+        <button mat-button class="action-button" (click)="onFeedback()">
+          <mat-icon>feedback</mat-icon>
+          Feedback
+        </button>
+      </div>
+    </div>
+  </div>

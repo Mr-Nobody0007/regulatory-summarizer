@@ -1,0 +1,37 @@
+<div class="chat-panel">
+    <!-- Messages List -->
+    <div class="message-list">
+        <app-message 
+          *ngFor="let message of messages" 
+          [message]="message"
+          (copyContent)="onCopyContent($event)"
+          (downloadContent)="onDownloadContent($event)"
+          (provideFeedback)="onProvideFeedback($event)">
+        </app-message>
+      </div>
+  
+    <!-- Message Input -->
+    <div class="message-input">
+      <mat-form-field appearance="outline" class="input-field">
+        <textarea
+          matInput
+          [formControl]="questionControl"
+          placeholder="Ask a question about this document..."
+          rows="3"
+          [maxlength]="questionCharLimit"
+          (keydown)="handleKeyDown($event)"
+        ></textarea>
+        <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
+      </mat-form-field>
+      
+      <div class="input-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          [disabled]="questionControl.invalid"
+          (click)="submitQuestion()">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>

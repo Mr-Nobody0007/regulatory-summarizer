@@ -1,0 +1,45 @@
+<div class="document-view-container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading document summary...</p>
+    </div>
+  
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <h3>{{ error }}</h3>
+      <button mat-raised-button color="primary" (click)="returnToSearch()">
+        Return to Search
+      </button>
+    </div>
+  
+    <!-- Document View -->
+    <div *ngIf="documentSummary && !isLoading" class="document-view-content">
+      <!-- Document Header Section -->
+      <app-document-header 
+        [document]="documentSummary"
+        (backClicked)="returnToSearch()"
+        (pdfOpened)="openPdfDocument($event)">
+      </app-document-header>
+      
+      <!-- Main Content Area - Split into two columns -->
+      <div class="main-content">
+        <!-- Left Column: Chat Messages -->
+        <div class="chat-column">
+          <app-chat-panel 
+            [messages]="messages"
+            (questionSubmit)="addUserMessage($event)">
+          </app-chat-panel>
+        </div>
+        
+        <!-- Right Column: Suggested Prompts -->
+        <div class="prompts-column">
+          <app-suggested-prompts 
+            [prompts]="prompts"
+            (promptSelected)="usePrompt($event)">
+          </app-suggested-prompts>
+        </div>
+      </div>
+    </div>
+  </div>

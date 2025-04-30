@@ -1,59 +1,91 @@
-<div class="document-header">
-    <!-- Loading State -->
-    <div *ngIf="isLoading" class="doc-loading">
-      <mat-spinner diameter="24"></mat-spinner>
-      <span>Loading document details...</span>
-    </div>
+<div class="document-header-section">
     
-    <!-- Document Header Content -->
-    <div *ngIf="!isLoading" class="doc-content">
-      <h2 class="doc-title">{{ document.title }}</h2>
+    
+    <div class="document-title-area">
+      <h2 class="doc-title">{{ documentInfo.id }} {{ documentInfo.title }}</h2>
       
-      <!-- Basic Document Metadata -->
       <div class="doc-metadata">
         <div class="meta-item">
           <a href="javascript:void(0)" class="pdf-link" (click)="openPdfDocument()">
             <span class="meta-tag">PDF</span>
           </a>
           <span class="meta-bullet">•</span>
-          <span>Published {{ document.publicationDate }}</span>
-        </div>
-        
-        <div class="meta-item">
-          <span>{{ document.documentType }}</span>
+          <span>{{ documentInfo.documentType }}</span>
           <span class="meta-bullet">•</span>
-          <span>{{ document.agency }}</span>
+          <span>Published {{ documentInfo.publicationDate }}</span>
+          <span class="meta-bullet">•</span>
+          <span>Agency: {{ documentInfo.agency }}</span>
         </div>
       </div>
-      
-      <!-- Extended Metadata Toggle -->
-      <button mat-button class="more-button" (click)="toggleExtendedMetadata()">
-        {{ showExtendedMetadata ? 'Less details' : 'More details' }}
-        <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
-      </button>
-      
-      <!-- Extended Document Metadata -->
-      <div class="extended-metadata" *ngIf="showExtendedMetadata">
+    </div>
+    
+    <button mat-button class="more-button" (click)="toggleExtendedMetadata()">
+      {{ showExtendedMetadata ? 'Less details' : 'More details' }}
+      <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </button>
+    
+    <!-- Extended metadata section -->
+    <div class="extended-metadata" *ngIf="showExtendedMetadata">
+      <!-- Extended metadata content here -->
+      <div class="extended-meta-grid">
         <!-- Document Number -->
-        <div class="extended-meta-item" *ngIf="document.documentNumber">
+        <div class="extended-meta-item" *ngIf="documentInfo.documentNumber">
           <span class="meta-label">Document No:</span>
-          <span>{{ document.documentNumber }}</span>
+          <span>{{ documentInfo.documentNumber }}</span>
         </div>
         
         <!-- Effective Date -->
-        <div class="extended-meta-item" *ngIf="document.effectiveDate">
+        <div class="extended-meta-item" *ngIf="documentInfo.effectiveDate">
           <span class="meta-label">Effective Date:</span>
-          <span>{{ document.effectiveDate }}</span>
+          <span>{{ documentInfo.effectiveDate }}</span>
         </div>
         
-        <!-- Add more metadata fields as needed -->
-      </div>
-      
-      <!-- Document Summary Section -->
-      <div class="doc-summary-section">
-        <h3>Document Summary</h3>
-        <div class="doc-summary">
-          {{ document.summary }}
+        <!-- Citation -->
+        <div class="extended-meta-item" *ngIf="documentInfo.citation">
+          <span class="meta-label">Citation:</span>
+          <span>{{ documentInfo.citation }}</span>
+        </div>
+        
+        <!-- CFR References -->
+        <div class="extended-meta-item" *ngIf="documentInfo.cfrReferences && documentInfo.cfrReferences.length > 0">
+          <span class="meta-label">CFR References:</span>
+          <span>{{ documentInfo.cfrReferences.join(', ') }}</span>
+        </div>
+        
+        <!-- Docket IDs -->
+        <div class="extended-meta-item" *ngIf="documentInfo.docketIds && documentInfo.docketIds.length > 0">
+          <span class="meta-label">Docket IDs:</span>
+          <span>{{ documentInfo.docketIds.join(', ') }}</span>
+        </div>
+        
+        <!-- RINs -->
+        <div class="extended-meta-item" *ngIf="documentInfo.regulationIdNumbers && documentInfo.regulationIdNumbers.length > 0">
+          <span class="meta-label">Regulation ID Numbers:</span>
+          <span>{{ documentInfo.regulationIdNumbers.join(', ') }}</span>
+        </div>
+        
+        <!-- Comments Close Date -->
+        <div class="extended-meta-item" *ngIf="documentInfo.commentsCloseOn">
+          <span class="meta-label">Comments Close On:</span>
+          <span>{{ documentInfo.commentsCloseOn }}</span>
+        </div>
+        
+        <!-- Presidential Document Fields -->
+        <div class="extended-meta-item" *ngIf="documentInfo.presidentialDocument">
+          <span class="meta-label">Presidential Document:</span>
+          <span>Yes</span>
+        </div>
+        
+        <!-- Executive Order Number -->
+        <div class="extended-meta-item" *ngIf="documentInfo.executiveOrder">
+          <span class="meta-label">Executive Order:</span>
+          <span>{{ documentInfo.executiveOrder }}</span>
+        </div>
+        
+        <!-- Signing Date for Presidential Documents -->
+        <div class="extended-meta-item" *ngIf="documentInfo.signingDate">
+          <span class="meta-label">Signing Date:</span>
+          <span>{{ documentInfo.signingDate }}</span>
         </div>
       </div>
     </div>

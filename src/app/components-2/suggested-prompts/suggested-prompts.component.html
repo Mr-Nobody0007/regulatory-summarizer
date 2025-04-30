@@ -1,50 +1,29 @@
 <div class="suggested-prompts-container">
-    <h3 class="section-title">Suggested Questions</h3>
+    <h3 class="section-title">People also ask</h3>
     
-    <div class="prompts-list">
-      <!-- Prompt Groups -->
-      <div *ngFor="let group of visiblePromptGroups" class="prompt-group">
-        <!-- Group Header (Purpose) -->
-        <div class="group-header" *ngIf="group.prompts.length > 1">
-          <h4>{{ group.purpose }}</h4>
-        </div>
-        
-        <!-- Prompts in the Group -->
-        <div class="group-prompts">
-          <div 
-            *ngFor="let prompt of group.expanded ? group.prompts : group.prompts.slice(0, 3)" 
-            class="prompt-card"
-            (click)="selectPrompt(prompt)">
-            <div class="prompt-label">
-              <mat-icon>chat</mat-icon>
-              <span>{{ prompt.label }}</span>
-            </div>
-            
-            <p *ngIf="group.expanded" class="prompt-text">
-              {{ prompt.prompt }}
-            </p>
+    <div class="prompts-list" #promptsList>
+      <!-- Prompt Cards with Accordion Behavior -->
+      <div *ngFor="let prompt of visiblePrompts" class="prompt-card">
+        <!-- Prompt Label (Always Visible) -->
+        <div class="prompt-header" (click)="togglePromptExpansion(prompt)">
+          <div class="prompt-label">
+            <mat-icon>chat</mat-icon>
+            <span>{{ prompt.label }}</span>
           </div>
           
-          <!-- Show more prompts in this group if there are more than 3 -->
-          <button 
-            *ngIf="group.prompts.length > 3" 
-            mat-button 
-            class="show-more-button" 
-            (click)="toggleGroup(group, $event)">
-            <mat-icon>{{ group.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
-            {{ group.expanded ? 'Show less' : 'Show more' }}
-          </button>
+          <mat-icon class="expand-icon">
+            {{ isPromptExpanded(prompt) ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </div>
+        
+        <!-- Expandable Prompt Content -->
+        <div *ngIf="isPromptExpanded(prompt)" class="prompt-content">
+          <p class="prompt-text">
+            <a href="javascript:void(0)" (click)="selectPrompt(prompt)" class="prompt-link">
+              {{ prompt.prompt }}
+            </a>
+          </p>
         </div>
       </div>
-      
-      <!-- "More suggestions" button at the bottom -->
-      <button 
-        *ngIf="shouldShowMoreButton" 
-        mat-button 
-        class="more-suggestions-button" 
-        (click)="toggleShowAllPrompts()">
-        <mat-icon>{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
-        {{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}
-      </button>
     </div>
   </div>

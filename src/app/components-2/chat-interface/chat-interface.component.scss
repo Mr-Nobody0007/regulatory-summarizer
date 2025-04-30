@@ -181,90 +181,41 @@
   }
   
   // Bottom Section: Split into Prompts and Input
-  .bottom-section {
+.bottom-section {
     display: flex;
-    height: 180px; // Fixed height for bottom section
+    height: 300px; /* Increased height for bottom section */
+    min-height: 300px; /* Minimum height */
+    flex-shrink: 0; /* Prevent section from shrinking */
     background-color: white;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* Prevent the section itself from scrolling */
     
     // Left Side: Suggested Prompts
     .suggested-prompts-area {
       width: 50%;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
+      height: 100%;
+      min-height: 100%; /* Ensure min height */
+      display: flex; /* Use flexbox */
+      flex-direction: column; /* Stack children vertically */
+      position: relative; /* For positioning children */
+      overflow: hidden; /* Hide any overflow */
+      flex-shrink: 0; /* Prevent from shrinking */
       
-      .section-title {
-        font-size: 16px;
-        font-weight: 500;
-        margin: 0 0 12px 0;
-        color: rgba(0, 0, 0, 0.87);
+      /* Ensure app-suggested-prompts takes full height and width */
+      app-suggested-prompts {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Let internal components handle scrolling */
       }
-      
-      .prompts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 12px;
-        overflow-y: auto;
-      }
-      
-      .prompt-card {
-        background-color: #f0f4ff;
-        border-radius: 8px;
-        padding: 12px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.2s, box-shadow 0.2s;
-        border-left: 3px solid transparent;
-        
-        &:hover {
-          background-color: #e0e8ff;
-          border-left-color: #004aa5;
-          box-shadow: 0 2px 6px rgba(0, 74, 165, 0.15);
-        }
-        
-        .prompt-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          
-          mat-icon {
-            color: #004aa5;
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-          }
-          
-          span {
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.8);
-          }
-        }
-        
-        .expand-icon {
-          color: #004aa5;
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
-        }
-      }
-      
-      .more-suggestions-button {
-        align-self: center;
-        font-size: 14px;
-        color: #004aa5;
-        margin-top: 12px;
-        
-        mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
-        }
-      }
+    }
+    
+    // Vertical Divider
+    .vertical-divider {
+      width: 1px;
+      background-color: rgba(0, 0, 0, 0.08);
+      height: 100%;
+      flex-shrink: 0; /* Prevent from shrinking */
     }
     
     // Right Side: Chat Input
@@ -273,10 +224,12 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
+      height: 100%;
+      flex-shrink: 0; /* Prevent from shrinking */
       
       .input-area {
         display: flex;
-        align-items: flex-end;
+        align-items: flex-start; /* Better align with taller textarea */
         gap: 16px;
         height: 100%;
       }
@@ -295,7 +248,7 @@
           
           textarea {
             resize: none;
-            max-height: 100px;
+            max-height: 140px; /* Increased from 100px */
             overflow-y: auto;
           }
         }
@@ -304,49 +257,50 @@
       .send-button {
         width: 48px;
         height: 48px;
-        margin-bottom: 16px;
+        margin-top: 16px;
+        flex-shrink: 0; /* Prevent from shrinking */
         
         mat-icon {
-          margin-left: 2px; // Slightly adjust icon position for visual balance
+          margin-left: 2px;
         }
       }
     }
   }
-  
   // Responsive adjustments for smaller screens
-  @media (max-width: 768px) {
-    .document-header-section {
-      .back-navigation {
-        width: 100%;
-        margin-bottom: 8px;
-      }
+//   @media (max-width: 768px) {
+//     .document-header-section {
+//       .back-navigation {
+//         width: 100%;
+//         margin-bottom: 8px;
+//       }
       
-      .document-title-area {
-        width: 100%;
-        margin-right: 0;
-      }
+//       .document-title-area {
+//         width: 100%;
+//         margin-right: 0;
+//       }
       
-      .more-button {
-        margin-top: 8px;
-      }
-    }
+//       .more-button {
+//         margin-top: 8px;
+//       }
+//     }
     
-    .bottom-section {
-      flex-direction: column;
-      height: auto;
+//     .bottom-section {
+//       flex-direction: column;
+//       height: auto;
+//       min-height: 300px; // Set minimum height for mobile
       
-      .suggested-prompts-area,
-      .chat-input-area {
-        width: 100%;
-      }
+//       .suggested-prompts-area,
+//       .chat-input-area {
+//         width: 100%;
+//       }
       
-      .vertical-divider {
-        width: 100%;
-        height: 1px;
-      }
+//       .suggested-prompts-area {
+//         height: 200px; // Fixed height for prompts area on mobile
+//       }
       
-      .suggested-prompts-area {
-        max-height: 160px;
-      }
-    }
-  }
+//       .vertical-divider {
+//         width: 100%;
+//         height: 1px;
+//       }
+//     }
+//   }

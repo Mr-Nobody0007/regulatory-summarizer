@@ -21,7 +21,8 @@ import { DocumentInfo } from '../chat-interface/chat-interface.component';
   styleUrls: ['./document-header.component.scss']
 })
 export class DocumentHeaderComponent {
-  @Input() document!: DocumentInfo;
+  // In document-header.component.ts
+@Input() documentInfo!: DocumentInfo; 
   @Input() isLoading: boolean = false;
   
   showExtendedMetadata: boolean = false;
@@ -37,34 +38,37 @@ export class DocumentHeaderComponent {
    * Open the document PDF in a new tab
    */
   openPdfDocument(): void {
-    if (!this.document) return;
+    if (!this.documentInfo) return;
     
     // For URL-based documents, if they have a PDF URL, use it directly
-    if (this.document.isUrl) {
-      if (this.document.pdfUrl) {
-        window.open(this.document.pdfUrl, '_blank');
+    if (this.documentInfo.isUrl) {
+      if (this.documentInfo.pdfUrl) {
+        window.open(this.documentInfo.pdfUrl, '_blank');
       } else {
         // For URL documents without PDF link, redirect to the original URL
-        window.open(this.document.id, '_blank');
+        window.open(this.documentInfo.id, '_blank');
       }
       return;
     }
     
     // For Federal Register documents, use the PDF URL if available
-    if (this.document.pdfUrl) {
-      window.open(this.document.pdfUrl, '_blank');
+    if (this.documentInfo.pdfUrl) {
+      window.open(this.documentInfo.pdfUrl, '_blank');
       return;
     }
     
     // Fall back to constructing URL based on document ID and publication date
-    if (!this.document.publicationDate) {
+    if (!this.documentInfo.publicationDate) {
       console.error('Missing publication date required for fallback PDF URL');
       return;
     }
     
-    const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${this.document.publicationDate}/pdf/${this.document.id}.pdf`;
+    const pdfUrl = `https://www.govinfo.gov/content/pkg/FR-${this.documentInfo.publicationDate}/pdf/${this.documentInfo.id}.pdf`;
     window.open(pdfUrl, '_blank');
   }
+
+  
+  
   
   /**
    * Format a date string to YYYY-MM-DD

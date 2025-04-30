@@ -15,7 +15,7 @@
     </div>
   
     <!-- Main Chat Interface with revised layout -->
-    <div *ngIf="documentInfo && !error" class="chat-layout">
+    <div *ngIf="documentInfo && !error && !isLoading" class="chat-layout">
       <!-- Top Section: Document Header -->
       <div class="document-header-section">
         <div class="back-navigation">
@@ -76,7 +76,7 @@
           <ng-container *ngFor="let message of chatMessages">
             <app-chat-message
               [message]="message"
-              [documentNumber]="documentInfo?.documentNumber">
+              [documentNumber]="documentInfo.documentNumber">
             </app-chat-message>
           </ng-container>
         </div>
@@ -89,30 +89,10 @@
       <div class="bottom-section">
         <!-- Left Side: Suggested Prompts -->
         <div class="suggested-prompts-area">
-          <h3 class="section-title">Suggested Questions</h3>
-          
-          <div class="prompts-grid">
-            <div 
-              *ngFor="let prompt of visiblePrompts"
-              class="prompt-card"
-              (click)="selectPrompt(prompt)">
-              <div class="prompt-label">
-                <mat-icon>chat</mat-icon>
-                <span>{{ prompt.label }}</span>
-              </div>
-              <mat-icon class="expand-icon">expand_more</mat-icon>
-            </div>
-          </div>
-          
-          <!-- More suggestions button -->
-          <button 
-            *ngIf="shouldShowMoreButton" 
-            mat-button 
-            class="more-suggestions-button" 
-            (click)="toggleShowAllPrompts()">
-            <mat-icon>{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
-            {{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}
-          </button>
+          <app-suggested-prompts
+            [prompts]="suggestedPrompts"
+            (promptSelected)="selectPrompt($event)">
+          </app-suggested-prompts>
         </div>
         
         <!-- Vertical Divider -->
@@ -128,7 +108,7 @@
                 [formControl]="messageControl"
                 [placeholder]="isInputDisabled ? 'Loading...' : 'Ask me about this document...'"
                 [maxlength]="charLimit"
-                rows="2"
+                rows="3" 
                 (input)="autoResize(messageInput)"
                 (keydown)="onKeydown($event)"
                 [disabled]="isInputDisabled">

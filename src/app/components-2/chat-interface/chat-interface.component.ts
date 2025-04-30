@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
-
+import { SuggestedPromptsComponent } from '../suggested-prompts/suggested-prompts.component';
 // Import services
 import { RegulatoryService } from '../../services/regulatory.service';
 import { PromptService, Prompt } from '../../services/prompt.service';
@@ -37,11 +37,27 @@ export interface DocumentInfo {
   documentType: string;
   publicationDate: string;
   summary: string;
+  
+  // Basic metadata
   documentNumber?: string;
   effectiveDate?: string;
   pdfUrl?: string;
   isUrl?: boolean;
-  // Add other metadata as needed
+  
+  // Extended metadata
+  cfrReferences?: string[];
+  docketIds?: string[];
+  regulationIdNumbers?: string[];
+  citation?: string;
+  commentsCloseOn?: string;
+  
+  // Presidential document metadata
+  presidentialDocument?: boolean;
+  executiveOrder?: string;
+  signingDate?: string;
+  
+  // Raw data if needed for additional processing
+  rawData?: any;
 }
 
 @Component({
@@ -56,7 +72,9 @@ export interface DocumentInfo {
     MatFormFieldModule,
     MatInputModule,
     MatDialogModule,
-    ChatMessageComponent
+    ChatMessageComponent,
+    SuggestedPromptsComponent,
+    FeedbackDialogComponent
   ],
   templateUrl: './chat-interface.component.html',
   styleUrls: ['./chat-interface.component.scss']
@@ -118,29 +136,10 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
       }
     });
   }
-  
-  ngAfterViewChecked(): void {
-    if (this.shouldScrollToBottom) {
-      this.scrollToBottom();
-      this.shouldScrollToBottom = false;
-    }
-  }
-  
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-  
+
   /**
-   * Toggle extended metadata visibility
-   */
-  toggleExtendedMetadata(): void {
-    this.showExtendedMetadata = !this.showExtendedMetadata;
-  }
-  
-  /**
-   * Load the document and initialize the chat with a summary
-   */
+ * Load the document and initialize the chat with a summary
+ */
   private loadDocument(input: string, isUrl: boolean, initialPrompt: string): void {
     this.isLoading = true;
     this.isInputDisabled = true;
@@ -165,22 +164,14 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (docSummary) => {
-          // Update document info
-          this.documentInfo = {
-            id: docSummary.id,
-            title: docSummary.title,
-            agency: docSummary.agency,
-            documentType: docSummary.documentType,
-            publicationDate: docSummary.publicationDate,
-            summary: docSummary.summary,
-            documentNumber: docSummary.documentNumber,
-            effectiveDate: docSummary.effectiveDate,
-            pdfUrl: docSummary.pdfUrl,
-            isUrl: isUrl
-          };
+          console.log('Document Summary Response:', docSummary);
+          console.log('Initial requestId:', docSummary.regulationRequestId);
           
-          // Replace the loading message with the summary
-          this.replaceLoadingMessage(docSummary.summary);
+          // Process documentation metadata from the DTO
+          this.processDocumentMetadata(docSummary);
+          
+          // Replace the loading message with the summary and include the requestId
+          this.replaceLoadingMessage(docSummary.summary, false, docSummary.regulationRequestId);
           
           // Load suggested prompts based on document type
           this.loadSuggestedPrompts(docSummary.documentType);
@@ -198,6 +189,109 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
         }
       });
   }
+
+/**
+ * Process document metadata from the DTO
+ */
+private processDocumentMetadata(docSummary: any): void {
+  // First, create our basic document info object
+  this.documentInfo = {
+    id: docSummary.id,
+    title: docSummary.title,
+    agency: docSummary.agency,
+    documentType: docSummary.documentType,
+    publicationDate: docSummary.publicationDate,
+    summary: docSummary.summary,
+    documentNumber: docSummary.documentNumber,
+    isUrl: this.documentInfo?.isUrl || false
+  };
+  
+  // If we have a documentDto, extract additional metadata
+  if (docSummary.documentDto) {
+    const dto = docSummary.documentDto;
+    
+    // Override basic data with values from the DTO if they exist
+    this.documentInfo.title = dto.title || this.documentInfo.title;
+    this.documentInfo.publicationDate = this.formatDate(dto.publication_date) || this.documentInfo.publicationDate;
+    this.documentInfo.documentNumber = dto.document_number || this.documentInfo.documentNumber;
+    this.documentInfo.pdfUrl = dto.pdf_url || docSummary.pdfUrl;
+    
+    // Extract agency names if available
+    if (dto.agencies && Array.isArray(dto.agencies) && dto.agencies.length > 0) {
+      this.documentInfo.agency = dto.agencies.map((agency: any) => agency.name || '').filter((name: string) => name).join(', ');
+    }
+    
+    // Add additional metadata fields
+    this.documentInfo.effectiveDate = this.formatDate(dto.effective_on);
+    this.documentInfo.docketIds = dto.docket_ids || [];
+    this.documentInfo.regulationIdNumbers = dto.regulation_id_numbers || [];
+    this.documentInfo.cfrReferences = this.formatCfrReferences(dto.cfr_references);
+    this.documentInfo.citation = dto.citation;
+    
+    // Add any other metadata fields your UI needs
+    this.documentInfo.commentsCloseOn = this.formatDate(dto.comments_close_on);
+    this.documentInfo.signingDate = this.formatDate(dto.signing_date);
+    this.documentInfo.presidentialDocument = dto.presidential_document;
+    this.documentInfo.executiveOrder = dto.executive_order_number;
+    
+    console.log('Processed document metadata:', this.documentInfo);
+  }
+}
+
+/**
+ * Format CFR references to readable format
+ */
+private formatCfrReferences(cfrRefs: any[] | null): string[] {
+  if (!cfrRefs || !Array.isArray(cfrRefs) || cfrRefs.length === 0) {
+    return [];
+  }
+  
+  return cfrRefs.map(ref => {
+    if (ref.title && ref.part) {
+      return `${ref.title} CFR ${ref.part}`;
+    }
+    return '';
+  }).filter(ref => ref !== '');
+}
+
+/**
+ * Format date string to YYYY-MM-DD
+ */
+private formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
+  
+  try {
+    const date = new Date(dateStr);
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  } catch (error) {
+    console.error('Error parsing date:', dateStr, error);
+    return dateStr;
+  }
+}
+  
+  ngAfterViewChecked(): void {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
+  }
+  
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+  
+  /**
+   * Toggle extended metadata visibility
+   */
+  toggleExtendedMetadata(): void {
+    this.showExtendedMetadata = !this.showExtendedMetadata;
+  }
+  
+  /**
+   * Load the document and initialize the chat with a summary
+   */
+ 
   
   /**
    * Send a message
@@ -343,7 +437,27 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
   /**
    * Replace a message in the chat (used for updating loading messages)
    */
+  private replaceLoadingMessage(content: string, isLoading: boolean = false, requestId?: number): void {
+    if (this.chatMessages.length > 0) {
+      const firstMessageId = this.chatMessages[0].id;
+      
+      // If no requestId was provided from the API, generate a fallback
+      if (!requestId) {
+        // Generate a random number between 10000 and 99999 to use as fallback
+        requestId = Math.floor(Math.random() * 90000) + 10000;
+        console.log('No requestId from API, using fallback:', requestId);
+      }
+      
+      this.replaceMessage(firstMessageId, content, isLoading, requestId);
+    }
+  }
+  
+  /**
+   * Replace a message in the chat (used for updating loading messages)
+   */
   private replaceMessage(messageId: string, content: string, isLoading: boolean = false, requestId?: number): void {
+    console.log('Replacing message with ID:', messageId, 'with requestId:', requestId);
+    
     const messageIndex = this.chatMessages.findIndex(msg => msg.id === messageId);
     
     if (messageIndex !== -1) {
@@ -356,16 +470,6 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
       
       this.shouldScrollToBottom = true;
       this.cdr.detectChanges();
-    }
-  }
-  
-  /**
-   * Replace the initial loading message with the actual summary
-   */
-  private replaceLoadingMessage(content: string): void {
-    if (this.chatMessages.length > 0) {
-      const firstMessageId = this.chatMessages[0].id;
-      this.replaceMessage(firstMessageId, content);
     }
   }
   

@@ -1,16 +1,8 @@
-// src/app/components-2/suggested-prompts/suggested-prompts.component.ts
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { Prompt } from '../../services/prompt.service';
-
-interface PromptGroup {
-  purpose: string;
-  prompts: Prompt[];
-  expanded: boolean;
-}
 
 @Component({
   selector: 'app-suggested-prompts',
@@ -18,57 +10,80 @@ interface PromptGroup {
   imports: [
     CommonModule,
     MatButtonModule,
-    MatIconModule,
-    MatExpansionModule
+    MatIconModule
   ],
   templateUrl: './suggested-prompts.component.html',
   styleUrls: ['./suggested-prompts.component.scss']
 })
-export class SuggestedPromptsComponent {
+export class SuggestedPromptsComponent implements AfterViewInit {
   @Input() prompts: Prompt[] = [];
   @Output() promptSelected = new EventEmitter<Prompt>();
+  @ViewChild('promptsList') promptsListElement?: ElementRef;
   
-  promptGroups: PromptGroup[] = [];
-  showAllPrompts: boolean = false;
-  initialPromptCount: number = 4;
+  visiblePrompts: Prompt[] = [];
+  
+  // Track which prompts are expanded
+  expandedPromptIds: Set<string> = new Set();
   
   ngOnChanges() {
     if (this.prompts && this.prompts.length > 0) {
-      this.groupPromptsByPurpose();
+      // Show all prompts by default
+      this.visiblePrompts = this.prompts;
+    }
+  }
+  
+  ngAfterViewInit() {
+    // Force scrollbar visibility check after view init
+    setTimeout(() => {
+      this.checkScroll();
+    }, 100);
+  }
+  
+  /**
+   * Toggle expansion state of a prompt
+   */
+  togglePromptExpansion(prompt: Prompt): void {
+    // Create a unique ID for the prompt based on label
+    const promptId = this.getPromptId(prompt);
+    
+    if (this.expandedPromptIds.has(promptId)) {
+      this.expandedPromptIds.delete(promptId);
+    } else {
+      this.expandedPromptIds.add(promptId);
+    }
+    
+    // Check scroll state after expansion/collapse
+    setTimeout(() => {
+      this.checkScroll();
+    }, 300); // Wait for animation to complete
+  }
+  
+  /**
+   * Ensure proper scrolling after expansion
+   */
+  private checkScroll(): void {
+    if (this.promptsListElement) {
+      const element = this.promptsListElement.nativeElement;
+      // Force a reflow to ensure scrollbar visibility is up-to-date
+      element.style.overflow = 'hidden';
+      setTimeout(() => {
+        element.style.overflow = 'auto';
+      }, 0);
     }
   }
   
   /**
-   * Group prompts by their purpose
+   * Check if a prompt is expanded
    */
-  private groupPromptsByPurpose(): void {
-    // Reset groups
-    this.promptGroups = [];
-    
-    // Get unique purposes
-    const purposes = [...new Set(this.prompts.map(p => p.purpose))];
-    
-    // Create groups
-    this.promptGroups = purposes.map(purpose => ({
-      purpose,
-      prompts: this.prompts.filter(p => p.purpose === purpose),
-      expanded: false
-    }));
+  isPromptExpanded(prompt: Prompt): boolean {
+    return this.expandedPromptIds.has(this.getPromptId(prompt));
   }
   
   /**
-   * Toggle expansion state of a prompt group
+   * Generate a unique ID for a prompt
    */
-  toggleGroup(group: PromptGroup, event: Event): void {
-    event.stopPropagation(); // Prevent selecting the prompt
-    group.expanded = !group.expanded;
-  }
-  
-  /**
-   * Toggle showing all prompts vs. limited set
-   */
-  toggleShowAllPrompts(): void {
-    this.showAllPrompts = !this.showAllPrompts;
+  private getPromptId(prompt: Prompt): string {
+    return `${prompt.purpose}-${prompt.label}`;
   }
   
   /**
@@ -76,29 +91,5 @@ export class SuggestedPromptsComponent {
    */
   selectPrompt(prompt: Prompt): void {
     this.promptSelected.emit(prompt);
-  }
-  
-  /**
-   * Get visible prompts based on show all toggle
-   */
-  get visiblePromptGroups(): PromptGroup[] {
-    if (this.showAllPrompts) {
-      return this.promptGroups;
-    } else {
-      // If we have few groups, show them all but limit prompts in each
-      if (this.promptGroups.length <= 2) {
-        return this.promptGroups;
-      }
-      // Otherwise limit the number of groups
-      return this.promptGroups.slice(0, 2);
-    }
-  }
-  
-  /**
-   * Check if we should show the "more suggestions" button
-   */
-  get shouldShowMoreButton(): boolean {
-    return this.promptGroups.length > 2 || 
-           this.prompts.length > this.initialPromptCount;
   }
 }

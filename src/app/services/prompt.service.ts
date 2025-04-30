@@ -50,6 +50,69 @@ export class PromptService {
     "purpose": "Application",
     "isDefault": false,
     "label": "How does this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How s this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How do this apply to small businesses?",
+    "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
+    "documentType": "ANY"
+  },
+  {
+    "purpose": "Application",
+    "isDefault": false,
+    "label": "How ds this apply to small businesses?",
     "prompt": "Explain how this regulation applies specifically to small businesses, including any exemptions or special provisions.",
     "documentType": "ANY"
   },

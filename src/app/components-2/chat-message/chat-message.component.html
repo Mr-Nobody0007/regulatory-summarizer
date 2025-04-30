@@ -37,13 +37,18 @@
             <mat-icon>download</mat-icon>
           </button>
           
-          <button *ngIf="message.requestId" mat-icon-button (click)="provideFeedback()" matTooltip="Provide feedback">
+          <!-- Feedback Button - Show regardless of requestId for consistency -->
+          <button 
+            mat-icon-button 
+            (click)="provideFeedback()" 
+            matTooltip="Provide feedback"
+            [disabled]="!message.requestId">
             <mat-icon>feedback</mat-icon>
           </button>
         </div>
       </div>
       
-      <!-- Request ID (if available) -->
+      <!-- Request ID (if available) - for debugging, can be removed in production -->
       <div *ngIf="message.requestId" class="request-id">
         Request ID: {{ message.requestId }}
       </div>

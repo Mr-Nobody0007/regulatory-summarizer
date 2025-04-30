@@ -1,12 +1,13 @@
-// src/app/components-2/chat-message/chat-message.component.ts
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChatMessage } from '../chat-interface/chat-interface.component';
 import { RegulatoryService } from '../../services/regulatory.service';
+import { FeedbackDialogComponent } from '../../components/feedback-dialog/feedback-dialog.component';
 
 @Component({
   selector: 'app-chat-message',
@@ -16,7 +17,8 @@ import { RegulatoryService } from '../../services/regulatory.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTooltipModule
   ],
   templateUrl: './chat-message.component.html',
   styleUrls: ['./chat-message.component.scss']
@@ -29,6 +31,17 @@ export class ChatMessageComponent {
     private dialog: MatDialog,
     private regulatoryService: RegulatoryService
   ) {}
+  
+  ngOnInit() {
+    // Log the message properties for debugging
+    console.log('Message initialized:', {
+      id: this.message.id,
+      isUser: this.message.isUser,
+      content: this.message.content?.substring(0, 20) + '...',
+      requestId: this.message.requestId,
+      hasRequestId: !!this.message.requestId
+    });
+  }
   
   /**
    * Copy message content to clipboard
@@ -69,16 +82,35 @@ export class ChatMessageComponent {
   }
   
   /**
-   * Open feedback dialog
+   * Open the feedback dialog component
    */
   provideFeedback(): void {
-    if (!this.message.requestId) return;
+    if (!this.message.requestId) {
+      console.warn('Cannot provide feedback: No requestId available');
+      return;
+    }
     
-    // We'll import and use the feedback dialog in the final implementation
-    console.log('Opening feedback dialog for request ID:', this.message.requestId);
+    // Use the existing feedback dialog component
+    const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+      width: '800px',
+      data: { responseId: this.message.requestId }
+    });
     
-    // This logic will open the FeedbackDialogComponent and handle the result
-    // similar to the existing implementation, but we'll keep it simple for now
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Feedback submitted:', result);
+        
+        // Submit feedback using the regulatory service
+        this.regulatoryService.submitFeedback(result).subscribe({
+          next: () => {
+            console.log('Feedback submitted successfully');
+          },
+          error: err => {
+            console.error('Error submitting feedback', err);
+          }
+        });
+      }
+    });
   }
   
   /**

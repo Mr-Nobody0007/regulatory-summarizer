@@ -1,60 +1,56 @@
 .suggested-prompts-container {
-    padding: 16px;
-    height: calc(100% - 180px); /* Make room for chat input */
     display: flex;
     flex-direction: column;
+    height: 100%; /* Take full height of parent */
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
   }
   
   .section-title {
     font-size: 16px;
     font-weight: 500;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     color: rgba(0, 0, 0, 0.87);
+    flex-shrink: 0; /* Prevent title from shrinking */
   }
   
   .prompts-list {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1; /* Take remaining space */
     display: flex;
     flex-direction: column;
-    gap: 16px;
-  }
-  
-  .prompt-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    
-    .group-header {
-      h4 {
-        font-size: 14px;
-        font-weight: 500;
-        margin: 0 0 8px 0;
-        color: rgba(0, 0, 0, 0.6);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-    }
-    
-    .group-prompts {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    gap: 12px;
+    overflow-y: auto !important; /* Force scrolling */
+    padding-right: 8px;
+    margin-bottom: 8px;
   }
   
   .prompt-card {
-    background-color: #f0f4ff;
+    background-color: white;
     border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+    min-height: 48px; /* Set minimum height */
+    flex-shrink: 0 !important; /* Prevent cards from shrinking */
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .prompt-header {
     padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s;
-    border-left: 3px solid transparent;
+    background-color: #f0f4ff;
+    transition: background-color 0.2s;
+    min-height: 24px; /* Minimum height for header */
     
     &:hover {
       background-color: #e0e8ff;
-      border-left-color: #004aa5;
-      box-shadow: 0 2px 6px rgba(0, 74, 165, 0.15);
     }
     
     .prompt-label {
@@ -67,6 +63,7 @@
         font-size: 20px;
         width: 20px;
         height: 20px;
+        flex-shrink: 0; /* Prevent icon from shrinking */
       }
       
       span {
@@ -76,36 +73,65 @@
       }
     }
     
+    .expand-icon {
+      color: #004aa5;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0; /* Prevent icon from shrinking */
+    }
+  }
+  
+  .prompt-content {
+    padding: 0 12px 12px 12px;
+    background-color: white;
+    animation: expandContent 0.3s ease-in-out;
+    
     .prompt-text {
-      margin: 8px 0 0 28px; // Align with label text
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.6);
+      margin: 0;
+      padding: 8px 0 0 28px; /* Align with label text */
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.7);
       line-height: 1.5;
+      max-height: 120px; /* Limit height for very long prompts */
+      overflow-y: auto; /* Make individual prompts scrollable if needed */
+    }
+    
+    .prompt-link {
+      color: #004aa5;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0, 74, 165, 0.5);
+      transition: border-bottom 0.2s;
+      
+      &:hover {
+        border-bottom: 1px solid #004aa5;
+      }
     }
   }
   
-  .show-more-button {
-    align-self: flex-start;
-    font-size: 13px;
-    color: #004aa5;
-    padding: 4px 8px;
-    
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
+  /* Remove the "More suggestions" button and just show all prompts with scrolling */
+  .prompts-list {
+    /* All prompts are shown, just scroll the container */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
   }
   
-  .more-suggestions-button {
-    align-self: center;
-    font-size: 14px;
-    color: #004aa5;
-    margin-top: 8px;
-    
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
+  /* Scrollbar styling */
+  .prompts-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .prompts-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .prompts-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  
+  .prompts-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }

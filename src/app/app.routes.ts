@@ -1,19 +1,27 @@
+// src/app/app.routes-v2.ts
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { DocumentSummaryComponent } from './components/document-summary/document-summary.component';
+import { AppShellComponent } from './components-2/app-shell/app-shell.component';
+import { HomePageComponent } from './components-2/home-page/home-page.component';
+import { ChatInterfaceComponent } from './components-2/chat-interface/chat-interface.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent
-  },
-  {
-    path: 'document/:id',
-    component: DocumentSummaryComponent
-  },
-  {
-    path: 'document/:id/:isUrl',
-    component: DocumentSummaryComponent
+    component: AppShellComponent,
+    children: [
+      {
+        path: '',
+        component: HomePageComponent
+      },
+      {
+        path: 'document/:id',
+        component: ChatInterfaceComponent
+      },
+      {
+        path: 'document/:id/:isUrl',
+        component: ChatInterfaceComponent
+      }
+    ]
   },
   {
     path: '**',

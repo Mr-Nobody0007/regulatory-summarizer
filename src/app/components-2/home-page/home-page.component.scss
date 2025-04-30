@@ -1,0 +1,400 @@
+.home-container {
+    max-width: 1000px;
+    width: 90%;
+    margin: 40px auto;
+    
+    // Ensure the card doesn't get too small on large screens
+    @media (min-width: 1600px) {
+      max-width: 1200px;
+      font-size: 16px;
+    }
+  
+  .no-results-dropdown {
+    padding: 16px;
+    
+    .no-results-message {
+      display: flex;
+      align-items: center;
+      color: rgba(0, 0, 0, 0.6);
+      
+      mat-icon {
+        color: #5f6368;
+        margin-right: 12px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      
+      span {
+        font-size: 14px;
+        
+        @media (min-width: 1600px) {
+          font-size: 15px;
+        }
+      }
+    }
+  }
+  
+  .selected-document, .submitted-url {
+    margin: 16px 0;
+    
+    mat-card {
+      padding: 16px;
+      border-left: 4px solid #004aa5;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        padding: 20px;
+      }
+    }
+    
+    mat-card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .document-info, .url-info {
+      flex: 1;
+      
+      h4 {
+        margin: 0 0 8px;
+        font-weight: 500;
+        font-size: 15px;
+        
+        @media (min-width: 1600px) {
+          font-size: 17px;
+          margin-bottom: 10px;
+        }
+      }
+      
+      p {
+        margin: 0 0 4px;
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        
+        @media (min-width: 1600px) {
+          font-size: 15px;
+          margin-bottom: 6px;
+        }
+      }
+      
+      .url-text {
+        word-break: break-all;
+      }
+    }
+  }
+  
+  .selected-prompt {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #f0f4ff;
+    border-radius: 8px;
+    
+    .prompt-label {
+      font-weight: 500;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    
+    .prompt-text {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.7);
+    }
+  }
+  
+  .url-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    
+    @media (min-width: 1600px) {
+      margin-top: 12px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      font-size: 14px;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        font-size: 16px;
+        padding: 8px 16px;
+      }
+    }
+  }
+  
+  .summarize-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    
+    @media (min-width: 1600px) {
+      margin-top: 40px;
+    }
+    
+    button {
+      min-width: 200px;
+      padding: 8px 24px;
+      font-size: 15px;
+      border-radius: 4px;
+      
+      @media (min-width: 1600px) {
+        min-width: 240px;
+        padding: 10px 28px;
+        font-size: 17px;
+      }
+    }
+  }
+  
+  .search-footer-info {
+    margin-top: 32px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+    
+    @media (min-width: 1600px) {
+      margin-top: 40px;
+      font-size: 15px;
+    }
+    
+    a {
+      color: #004aa5;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  }
+  
+  .assistant-card {
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    
+    @media (min-width: 1600px) {
+      padding: 40px;
+    }
+  }
+  
+  .card-title {
+    margin-top: 16px;
+    font-size: 24px;
+    font-weight: 500;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.87);
+    
+    @media (min-width: 1600px) {
+      font-size: 28px;
+    }
+  }
+  
+  .sparkle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 40px;
+    
+    .sparkle-icon {
+      background-color: #f0f4ff;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+      
+      @media (min-width: 1600px) {
+        width: 100px;
+        height: 100px;
+      }
+      
+      mat-icon {
+        color: #004aa5;
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        
+        @media (min-width: 1600px) {
+          font-size: 44px;
+          width: 44px;
+          height: 44px;
+        }
+      }
+    }
+  }
+  
+  .input-selection-tabs {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    
+    .tab-buttons {
+      display: flex;
+      gap: 16px;
+      
+      @media (min-width: 1600px) {
+        gap: 24px;
+      }
+      
+      button {
+        min-width: 180px;
+        padding: 8px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        
+        @media (min-width: 1600px) {
+          min-width: 200px;
+          padding: 12px 20px;
+          font-size: 16px;
+        }
+        
+        &.active {
+          background-color: #f0f4ff;
+          color: #004aa5;
+          border-color: #004aa5;
+        }
+        
+        mat-icon {
+          margin-right: 8px;
+          
+          @media (min-width: 1600px) {
+            margin-right: 12px;
+          }
+        }
+      }
+    }
+  }
+  
+  .search-section, .url-section {
+    h3 {
+      margin-bottom: 16px;
+      font-weight: normal;
+      color: rgba(0, 0, 0, 0.87);
+      font-size: 16px;
+      text-align: center;
+      
+      @media (min-width: 1600px) {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+    }
+  }
+  
+  // Google-like search container
+  .search-container {
+    position: relative;
+    width: 100%;
+    // Add margin-bottom to create space for the dropdown
+    &:has(.search-dropdown:not(:empty)) {
+      margin-bottom: 410px; // Slightly more than max-height of dropdown
+      
+      @media (min-width: 1600px) {
+        margin-bottom: 510px;
+      }
+    }
+  }
+  
+  .search-field, .url-field {
+    width: 100%;
+    
+    ::ng-deep .mat-mdc-form-field-infix {
+      font-size: 14px;
+      
+      @media (min-width: 1600px) {
+        font-size: 16px;
+      }
+    }
+  }
+  
+  // Google-like dropdown for search results
+  .search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: -8px; // Adjust based on your form field to create seamless connection
+    animation: dropdownAppear 0.2s ease;
+    
+    @media (min-width: 1600px) {
+      max-height: 500px;
+    }
+  }
+  
+  @keyframes dropdownAppear {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .search-result-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:hover, &.focused {
+      background-color: #f5f5f5;
+    }
+    
+    // Additional styling for keyboard focus
+    &.focused {
+      outline: 2px solid #004aa5;
+      position: relative;
+      z-index: 2;
+    }
+    
+    mat-icon {
+      color: #5f6368;
+      margin-right: 12px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+    
+    .result-details {
+      flex: 1;
+      
+      .result-title {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.87);
+        margin-bottom: 4px;
+        
+        @media (min-width: 1600px) {
+          font-size: 16px;
+        }
+      }
+      
+      .result-meta {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.6);
+        
+        @media (min-width: 1600px) {
+          font-size: 14px;
+        }
+      }
+    }
+  }

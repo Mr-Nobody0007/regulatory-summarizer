@@ -1,0 +1,111 @@
+.suggested-prompts-container {
+    padding: 16px;
+    height: calc(100% - 180px); /* Make room for chat input */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .prompts-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .prompt-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    .group-header {
+      h4 {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0 0 8px 0;
+        color: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+    
+    .group-prompts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+  
+  .prompt-card {
+    background-color: #f0f4ff;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    border-left: 3px solid transparent;
+    
+    &:hover {
+      background-color: #e0e8ff;
+      border-left-color: #004aa5;
+      box-shadow: 0 2px 6px rgba(0, 74, 165, 0.15);
+    }
+    
+    .prompt-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      mat-icon {
+        color: #004aa5;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      
+      span {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.8);
+      }
+    }
+    
+    .prompt-text {
+      margin: 8px 0 0 28px; // Align with label text
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.6);
+      line-height: 1.5;
+    }
+  }
+  
+  .show-more-button {
+    align-self: flex-start;
+    font-size: 13px;
+    color: #004aa5;
+    padding: 4px 8px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .more-suggestions-button {
+    align-self: center;
+    font-size: 14px;
+    color: #004aa5;
+    margin-top: 8px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }

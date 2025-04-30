@@ -1,0 +1,22 @@
+<mat-toolbar color="primary" class="app-toolbar">
+    <div class="toolbar-container">
+      <div class="toolbar-left">
+        <img src="assets/bank-of-america-logo.svg" alt="Bank of America" class="logo" />
+        <span class="title">Regulatory Summarizer</span>
+      </div>
+      <div class="toolbar-right">
+        <button mat-icon-button class="settings-button" (click)="openAIParametersDialog()" matTooltip="AI Parameters">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-button class="user-button">
+          <mat-icon>account_circle</mat-icon>
+          <span>Hi, Name</span>
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-toolbar>
+  
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>

@@ -1,0 +1,31 @@
+<div class="chat-input-container">
+    <div class="input-area">
+      <mat-form-field appearance="outline" class="message-field">
+        <textarea
+          matInput
+          #messageInput
+          [formControl]="messageControl"
+          [placeholder]="disabled ? 'Loading...' : 'Ask me about this document...'"
+          [maxlength]="charLimit"
+          rows="1"
+          (input)="autoResize(messageInput)"
+          (keydown)="onKeydown($event)"
+          [disabled]="disabled">
+        </textarea>
+        <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
+      </mat-form-field>
+      
+      <button 
+        mat-fab 
+        color="primary" 
+        class="send-button" 
+        [disabled]="messageControl.invalid || disabled"
+        (click)="sendMessage()">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+    
+    <div class="input-footer">
+      <span class="helper-text">For best results, be specific with your questions</span>
+    </div>
+  </div>

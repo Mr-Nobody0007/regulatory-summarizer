@@ -1,0 +1,57 @@
+.chat-input-container {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: white;
+    padding: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  
+  .message-field {
+    flex: 1;
+    
+    ::ng-deep {
+      .mat-mdc-form-field-infix {
+        padding: 12px 0;
+      }
+      
+      .mat-mdc-form-field-subscript-wrapper {
+        height: 18px;
+      }
+      
+      textarea {
+        resize: none;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    }
+  }
+  
+  .send-button {
+    width: 48px;
+    height: 48px;
+    
+    mat-icon {
+      margin-left: 2px; // Slightly adjust icon position for visual balance
+    }
+  }
+  
+  .input-footer {
+    display: flex;
+    justify-content: center;
+    
+    .helper-text {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.5);
+      font-style: italic;
+    }
+  }

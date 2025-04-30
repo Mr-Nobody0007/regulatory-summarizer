@@ -1,0 +1,151 @@
+<div class="chat-interface-container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading && !documentInfo?.title" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading document...</p>
+    </div>
+  
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <h3>{{ error }}</h3>
+      <button mat-raised-button color="primary" (click)="backToSearch()">
+        Return to Search
+      </button>
+    </div>
+  
+    <!-- Main Chat Interface with revised layout -->
+    <div *ngIf="documentInfo && !error" class="chat-layout">
+      <!-- Top Section: Document Header -->
+      <div class="document-header-section">
+        <div class="back-navigation">
+          <button mat-button color="primary" (click)="backToSearch()">
+            <mat-icon>chevron_left</mat-icon>
+            Search for another document
+          </button>
+        </div>
+        
+        <div class="document-title-area">
+          <h2 class="doc-title">{{ documentInfo.id }} {{ documentInfo.title }}</h2>
+          
+          <div class="doc-metadata">
+            <div class="meta-item">
+              <a href="javascript:void(0)" class="pdf-link" (click)="openPdfDocument()">
+                <span class="meta-tag">PDF</span>
+              </a>
+              <span class="meta-bullet">•</span>
+              <span>{{ documentInfo.documentType }}</span>
+              <span class="meta-bullet">•</span>
+              <span>Published {{ documentInfo.publicationDate }}</span>
+              <span class="meta-bullet">•</span>
+              <span>Agency: {{ documentInfo.agency }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <button mat-button class="more-button" (click)="toggleExtendedMetadata()">
+          {{ showExtendedMetadata ? 'Less details' : 'More details' }}
+          <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        
+        <!-- Extended metadata section -->
+        <div class="extended-metadata" *ngIf="showExtendedMetadata">
+          <!-- Extended metadata content here -->
+          <div class="extended-meta-grid">
+            <div class="extended-meta-item" *ngIf="documentInfo.documentNumber">
+              <span class="meta-label">Document No:</span>
+              <span>{{ documentInfo.documentNumber }}</span>
+            </div>
+            
+            <div class="extended-meta-item" *ngIf="documentInfo.effectiveDate">
+              <span class="meta-label">Effective Date:</span>
+              <span>{{ documentInfo.effectiveDate }}</span>
+            </div>
+            
+            <!-- Add more metadata as needed -->
+          </div>
+        </div>
+      </div>
+  
+      <!-- Horizontal Divider -->
+      <div class="section-divider"></div>
+  
+      <!-- Middle Section: Chat Messages -->
+      <div class="chat-messages-section">
+        <div class="chat-messages" #chatContainer>
+          <ng-container *ngFor="let message of chatMessages">
+            <app-chat-message
+              [message]="message"
+              [documentNumber]="documentInfo?.documentNumber">
+            </app-chat-message>
+          </ng-container>
+        </div>
+      </div>
+  
+      <!-- Horizontal Divider -->
+      <div class="section-divider"></div>
+  
+      <!-- Bottom Section: Split into Prompts and Input -->
+      <div class="bottom-section">
+        <!-- Left Side: Suggested Prompts -->
+        <div class="suggested-prompts-area">
+          <h3 class="section-title">Suggested Questions</h3>
+          
+          <div class="prompts-grid">
+            <div 
+              *ngFor="let prompt of visiblePrompts"
+              class="prompt-card"
+              (click)="selectPrompt(prompt)">
+              <div class="prompt-label">
+                <mat-icon>chat</mat-icon>
+                <span>{{ prompt.label }}</span>
+              </div>
+              <mat-icon class="expand-icon">expand_more</mat-icon>
+            </div>
+          </div>
+          
+          <!-- More suggestions button -->
+          <button 
+            *ngIf="shouldShowMoreButton" 
+            mat-button 
+            class="more-suggestions-button" 
+            (click)="toggleShowAllPrompts()">
+            <mat-icon>{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
+            {{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}
+          </button>
+        </div>
+        
+        <!-- Vertical Divider -->
+        <div class="vertical-divider"></div>
+        
+        <!-- Right Side: Chat Input -->
+        <div class="chat-input-area">
+          <div class="input-area">
+            <mat-form-field appearance="outline" class="message-field">
+              <textarea
+                matInput
+                #messageInput
+                [formControl]="messageControl"
+                [placeholder]="isInputDisabled ? 'Loading...' : 'Ask me about this document...'"
+                [maxlength]="charLimit"
+                rows="2"
+                (input)="autoResize(messageInput)"
+                (keydown)="onKeydown($event)"
+                [disabled]="isInputDisabled">
+              </textarea>
+              <mat-hint align="end">{{ getRemainingCharacters() }} characters remaining</mat-hint>
+            </mat-form-field>
+            
+            <button 
+              mat-fab 
+              color="primary" 
+              class="send-button" 
+              [disabled]="messageControl.invalid || isInputDisabled"
+              (click)="sendMessage()">
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

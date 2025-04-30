@@ -1,0 +1,50 @@
+<div class="suggested-prompts-container">
+    <h3 class="section-title">Suggested Questions</h3>
+    
+    <div class="prompts-list">
+      <!-- Prompt Groups -->
+      <div *ngFor="let group of visiblePromptGroups" class="prompt-group">
+        <!-- Group Header (Purpose) -->
+        <div class="group-header" *ngIf="group.prompts.length > 1">
+          <h4>{{ group.purpose }}</h4>
+        </div>
+        
+        <!-- Prompts in the Group -->
+        <div class="group-prompts">
+          <div 
+            *ngFor="let prompt of group.expanded ? group.prompts : group.prompts.slice(0, 3)" 
+            class="prompt-card"
+            (click)="selectPrompt(prompt)">
+            <div class="prompt-label">
+              <mat-icon>chat</mat-icon>
+              <span>{{ prompt.label }}</span>
+            </div>
+            
+            <p *ngIf="group.expanded" class="prompt-text">
+              {{ prompt.prompt }}
+            </p>
+          </div>
+          
+          <!-- Show more prompts in this group if there are more than 3 -->
+          <button 
+            *ngIf="group.prompts.length > 3" 
+            mat-button 
+            class="show-more-button" 
+            (click)="toggleGroup(group, $event)">
+            <mat-icon>{{ group.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
+            {{ group.expanded ? 'Show less' : 'Show more' }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- "More suggestions" button at the bottom -->
+      <button 
+        *ngIf="shouldShowMoreButton" 
+        mat-button 
+        class="more-suggestions-button" 
+        (click)="toggleShowAllPrompts()">
+        <mat-icon>{{ showAllPrompts ? 'expand_less' : 'expand_more' }}</mat-icon>
+        {{ showAllPrompts ? 'Show fewer suggestions' : 'More suggestions' }}
+      </button>
+    </div>
+  </div>

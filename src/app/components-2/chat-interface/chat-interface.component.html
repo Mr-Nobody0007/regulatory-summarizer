@@ -48,24 +48,79 @@
           <mat-icon>{{ showExtendedMetadata ? 'expand_less' : 'expand_more' }}</mat-icon>
         </button>
         
-        <!-- Extended metadata section -->
-        <div class="extended-metadata" *ngIf="showExtendedMetadata">
-          <!-- Extended metadata content here -->
-          <div class="extended-meta-grid">
+        
+    <div class="extended-metadata" *ngIf="showExtendedMetadata">
+        <div class="extended-meta-grid">
+            <!-- Document Number -->
             <div class="extended-meta-item" *ngIf="documentInfo.documentNumber">
-              <span class="meta-label">Document No:</span>
-              <span>{{ documentInfo.documentNumber }}</span>
+                <span class="meta-label">Document No:</span>
+                <span>{{ documentInfo.documentNumber }}</span>
             </div>
-            
+    
+            <!-- Effective Date -->
             <div class="extended-meta-item" *ngIf="documentInfo.effectiveDate">
-              <span class="meta-label">Effective Date:</span>
-              <span>{{ documentInfo.effectiveDate }}</span>
+                <span class="meta-label">Effective Date:</span>
+                <span>{{ documentInfo.effectiveDate }}</span>
             </div>
-            
-            <!-- Add more metadata as needed -->
-          </div>
+    
+            <!-- Citation -->
+            <div class="extended-meta-item" *ngIf="documentInfo.citation">
+                <span class="meta-label">Citation:</span>
+                <span>{{ documentInfo.citation }}</span>
+            </div>
+    
+            <!-- CFR References -->
+            <div class="extended-meta-item" *ngIf="documentInfo.cfrReferences && documentInfo.cfrReferences.length > 0">
+                <span class="meta-label">CFR References:</span>
+                <span>{{ documentInfo.cfrReferences.join(', ') }}</span>
+            </div>
+    
+            <!-- Docket IDs -->
+            <div class="extended-meta-item" *ngIf="documentInfo.docketIds && documentInfo.docketIds.length > 0">
+                <span class="meta-label">Docket IDs:</span>
+                <span>{{ documentInfo.docketIds.join(', ') }}</span>
+            </div>
+    
+            <!-- RINs -->
+            <div class="extended-meta-item"
+                *ngIf="documentInfo.regulationIdNumbers && documentInfo.regulationIdNumbers.length > 0">
+                <span class="meta-label">Regulation ID Numbers:</span>
+                <span>{{ documentInfo.regulationIdNumbers.join(', ') }}</span>
+            </div>
+    
+            <!-- Comments Close Date -->
+            <div class="extended-meta-item" *ngIf="documentInfo.commentsCloseOn">
+                <span class="meta-label">Comments Close On:</span>
+                <span>{{ documentInfo.commentsCloseOn }}</span>
+            </div>
+    
+            <!-- Presidential Document Fields -->
+            <div class="extended-meta-item" *ngIf="documentInfo.presidentialDocument">
+                <span class="meta-label">Presidential Document:</span>
+                <span>Yes</span>
+            </div>
+    
+            <!-- Executive Order Number -->
+            <div class="extended-meta-item" *ngIf="documentInfo.executiveOrder">
+                <span class="meta-label">Executive Order:</span>
+                <span>{{ documentInfo.executiveOrder }}</span>
+            </div>
+    
+            <!-- Signing Date for Presidential Documents -->
+            <div class="extended-meta-item" *ngIf="documentInfo.signingDate">
+                <span class="meta-label">Signing Date:</span>
+                <span>{{ documentInfo.signingDate }}</span>
+            </div>
+    
+            <!-- Page Range if available -->
+            <div class="extended-meta-item" *ngIf="documentInfo.startPage && documentInfo.endPage">
+                <span class="meta-label">Pages:</span>
+                <span>{{ documentInfo.startPage }}-{{ documentInfo.endPage }} ({{ documentInfo.endPage -
+                    documentInfo.startPage + 1 }} pages)</span>
+            </div>
         </div>
-      </div>
+    </div>
+    </div>
   
       <!-- Horizontal Divider -->
       <div class="section-divider"></div>

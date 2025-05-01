@@ -56,6 +56,10 @@ export interface DocumentInfo {
   executiveOrder?: string;
   signingDate?: string;
   
+  // Page information
+  startPage?: number;
+  endPage?: number;
+  
   // Raw data if needed for additional processing
   rawData?: any;
 }
@@ -233,6 +237,10 @@ private processDocumentMetadata(docSummary: any): void {
     this.documentInfo.signingDate = this.formatDate(dto.signing_date);
     this.documentInfo.presidentialDocument = dto.presidential_document;
     this.documentInfo.executiveOrder = dto.executive_order_number;
+    
+    // Page information
+    this.documentInfo.startPage = dto.start_page;
+    this.documentInfo.endPage = dto.end_page;
     
     console.log('Processed document metadata:', this.documentInfo);
   }

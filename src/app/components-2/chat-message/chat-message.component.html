@@ -1,56 +1,54 @@
 <div class="message-container" [ngClass]="{'user-message': message.isUser, 'system-message': !message.isUser}">
-    <!-- User Message Bubble -->
-    <div *ngIf="message.isUser" class="message-bubble user-bubble">
-      <div class="message-content">
-        {{ message.content }}
-      </div>
+  <!-- User Message Bubble -->
+  <div *ngIf="message.isUser" class="message-bubble user-bubble">
+    <div class="message-content">
+      {{ message.content }}
+    </div>
+    <div class="message-timestamp">
+      {{ formatTimestamp(message.timestamp) }}
+    </div>
+  </div>
+
+  <!-- System/AI Message Bubble -->
+  <div *ngIf="!message.isUser" class="message-bubble system-bubble">
+    <!-- Loading State -->
+    <div *ngIf="message.isLoading" class="loading-content">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>AI is generating a response...</span>
+    </div>
+    
+    <!-- Message Content with Formatting -->
+    <div class="message-content" [innerHTML]="formattedContent"></div>
+    
+    <!-- Timestamp and Action Buttons (only for non-loading AI messages) -->
+    <div *ngIf="!message.isLoading" class="message-footer">
       <div class="message-timestamp">
         {{ formatTimestamp(message.timestamp) }}
       </div>
-    </div>
-  
-    <!-- System/AI Message Bubble -->
-    <div *ngIf="!message.isUser" class="message-bubble system-bubble">
-      <!-- Loading State -->
-      <div *ngIf="message.isLoading" class="loading-content">
-        <mat-spinner diameter="24"></mat-spinner>
-        <span>AI is generating a response...</span>
-      </div>
       
-      <!-- Message Content -->
-      <div *ngIf="!message.isLoading" class="message-content">
-        {{ message.content }}
-      </div>
-      
-      <!-- Timestamp and Action Buttons (only for non-loading AI messages) -->
-      <div *ngIf="!message.isLoading" class="message-footer">
-        <div class="message-timestamp">
-          {{ formatTimestamp(message.timestamp) }}
-        </div>
+      <div class="message-actions">
+        <button mat-icon-button (click)="copyText()" matTooltip="Copy to clipboard">
+          <mat-icon>content_copy</mat-icon>
+        </button>
         
-        <div class="message-actions">
-          <button mat-icon-button (click)="copyText()" matTooltip="Copy to clipboard">
-            <mat-icon>content_copy</mat-icon>
-          </button>
-          
-          <button mat-icon-button (click)="downloadText()" matTooltip="Download as text">
-            <mat-icon>download</mat-icon>
-          </button>
-          
-          <!-- Feedback Button - Show regardless of requestId for consistency -->
-          <button 
-            mat-icon-button 
-            (click)="provideFeedback()" 
-            matTooltip="Provide feedback"
-            [disabled]="!message.requestId">
-            <mat-icon>feedback</mat-icon>
-          </button>
-        </div>
+        <button mat-icon-button (click)="downloadText()" matTooltip="Download as text">
+          <mat-icon>download</mat-icon>
+        </button>
+        
+        <!-- Feedback Button - Show regardless of requestId for consistency -->
+        <button 
+          mat-icon-button 
+          (click)="provideFeedback()" 
+          matTooltip="Provide feedback"
+          [disabled]="!message.requestId">
+          <mat-icon>feedback</mat-icon>
+        </button>
       </div>
-      
-      <!-- Request ID (if available) - for debugging, can be removed in production -->
-      <div *ngIf="message.requestId" class="request-id">
-        Request ID: {{ message.requestId }}
-      </div>
+    </div>
+    
+    <!-- Request ID (if available) - for debugging, can be removed in production -->
+    <div *ngIf="message.requestId" class="request-id">
+      Request ID: {{ message.requestId }}
     </div>
   </div>
+</div>

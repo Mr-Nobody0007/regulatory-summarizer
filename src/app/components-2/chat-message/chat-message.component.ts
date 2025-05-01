@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChatMessage } from '../chat-interface/chat-interface.component';
 import { RegulatoryService } from '../../services/regulatory.service';
 import { FeedbackDialogComponent } from '../../components/feedback-dialog/feedback-dialog.component';
+import { TextFormattingService } from '../../services/text-formatting.service';
+import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-chat-message',
@@ -23,13 +25,16 @@ import { FeedbackDialogComponent } from '../../components/feedback-dialog/feedba
   templateUrl: './chat-message.component.html',
   styleUrls: ['./chat-message.component.scss']
 })
-export class ChatMessageComponent {
+export class ChatMessageComponent implements OnInit {
   @Input() message!: ChatMessage;
   @Input() documentNumber?: string;
   
+  formattedContent: SafeHtml = '';
+  
   constructor(
     private dialog: MatDialog,
-    private regulatoryService: RegulatoryService
+    private regulatoryService: RegulatoryService,
+    private textFormatting: TextFormattingService
   ) {}
   
   ngOnInit() {
@@ -41,6 +46,21 @@ export class ChatMessageComponent {
       requestId: this.message.requestId,
       hasRequestId: !!this.message.requestId
     });
+
+    console.log("flags",this.message.isUser," ",this.message.content);
+    
+    
+    
+    
+    // Format the message content for AI/system messages
+    if (!this.message.isUser && this.message.content) {
+      this.formattedContent = this.textFormatting.formatText(this.message.content);
+    } else {
+      // For user messages, just pass the content as-is
+      this.formattedContent = this.message.content;
+    }
+
+    console.log("next formatted content",this.formattedContent);
   }
   
   /**

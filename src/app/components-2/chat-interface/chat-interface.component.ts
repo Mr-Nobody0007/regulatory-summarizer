@@ -15,6 +15,8 @@ import { RegulatoryService } from '../../services/regulatory.service';
 import { PromptService, Prompt } from '../../services/prompt.service';
 import { DocumentDataService } from '../../services/document-data.service';
 import { FeedbackDialogComponent } from '../../components/feedback-dialog/feedback-dialog.component';
+// Import the TextFormattingService
+import { TextFormattingService } from '../../services/text-formatting.service';
 
 // Import shared components
 import { ChatMessageComponent } from '../chat-message/chat-message.component';

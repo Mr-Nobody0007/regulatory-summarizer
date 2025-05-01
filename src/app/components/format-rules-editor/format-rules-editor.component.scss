@@ -1,0 +1,171 @@
+.rules-editor-container {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 24px;
+    
+    .editor-title {
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      color: #004aa5; // Bank of America blue
+    }
+    
+    .actions-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      
+      button {
+        min-width: 140px;
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+    
+    .tab-content {
+      padding: 24px 0;
+    }
+    
+    // Settings tab
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 16px 0;
+    }
+    
+    .preview-card {
+      margin-top: 24px;
+    }
+    
+    .preview-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      
+      h4 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.7);
+      }
+      
+      .preview-text {
+        padding: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        min-height: 150px;
+        background-color: #f9f9f9;
+        overflow-x: auto;
+        white-space: pre-wrap;
+      }
+    }
+    
+    // Rules tabs
+    .rules-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      
+      h3 {
+        margin: 0;
+        font-weight: normal;
+        font-size: 18px;
+        color: rgba(0, 0, 0, 0.7);
+      }
+    }
+    
+    mat-accordion {
+      margin-bottom: 24px;
+    }
+    
+    .rule-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+      
+      .effect-container {
+        grid-column: 1 / -1;
+        padding: 16px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 16px;
+        
+        h4 {
+          display: flex;
+          align-items: center;
+          margin-top: 0;
+          margin-bottom: 16px;
+          font-weight: 500;
+          color: rgba(0, 0, 0, 0.7);
+          
+          button {
+            margin-left: 8px;
+          }
+        }
+      }
+      
+      .style-properties {
+        margin-top: 16px;
+        
+        .style-property-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+          }
+        }
+      }
+    }
+    
+    // Help tab
+    .help-content {
+      h3 {
+        color: #004aa5; // Bank of America blue
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+      
+      p {
+        margin-bottom: 16px;
+      }
+      
+      ul {
+        padding-left: 24px;
+        margin-bottom: 24px;
+        
+        li {
+          margin-bottom: 8px;
+        }
+      }
+      
+      code {
+        background-color: #f1f1f1;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+    }
+  }
+  
+  // Custom snackbar styles
+  ::ng-deep .success-snackbar {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  ::ng-deep .error-snackbar {
+    background-color: #f44336;
+    color: white;
+  }

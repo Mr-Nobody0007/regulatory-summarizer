@@ -1,153 +1,153 @@
 .chat-interface-container {
-    height: calc(100vh - 64px); // Subtract toolbar height
-    width: 100%;
-    max-width: 100%;
-    background-color: #f5f5f5;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  height: calc(100vh - 64px); // Subtract toolbar height
+  width: 100%;
+  max-width: 100%;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Loading & Error States
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 400px;
+  margin: auto;
+  padding: 32px;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
   }
   
-  // Loading & Error States
-  .loading-container, .error-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    min-height: 400px;
-    margin: auto;
-    padding: 32px;
-    
-    mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 16px;
-    }
+  button {
+    margin-top: 24px;
+  }
+}
+
+// Main layout with revised structure
+.chat-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// Top Section: Document Header
+.document-header-section {
+  background-color: white;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-height: 100px;
+  max-height: 220px; // Allow expansion for extended metadata
+  overflow-y: auto;
+  
+  .back-navigation {
+    width: 180px;
+    margin-right: 16px;
     
     button {
-      margin-top: 24px;
-    }
-  }
-  
-  // Main layout with revised structure
-  .chat-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
-  
-  // Top Section: Document Header
-  .document-header-section {
-    background-color: white;
-    padding: 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    min-height: 100px;
-    max-height: 220px; // Allow expansion for extended metadata
-    overflow-y: auto;
-    
-    .back-navigation {
-      width: 180px;
-      margin-right: 16px;
-      
-      button {
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        
-        mat-icon {
-          margin-right: 4px;
-        }
-      }
-    }
-    
-    .document-title-area {
-      flex: 1;
-      min-width: 300px;
-      margin-right: 16px;
-      
-      .doc-title {
-        font-size: 18px;
-        font-weight: 500;
-        margin: 0 0 8px 0;
-        line-height: 1.3;
-        color: rgba(0, 0, 0, 0.87);
-      }
-      
-      .doc-metadata {
-        .meta-item {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 4px;
-          font-size: 14px;
-          color: rgba(0, 0, 0, 0.6);
-        }
-        
-        .meta-tag {
-          background-color: #e0e0e0;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-        
-        .meta-bullet {
-          margin: 0 4px;
-        }
-      }
-    }
-    
-    .more-button {
-      align-self: flex-start;
       font-size: 14px;
-      min-width: 120px;
-      color: #004aa5;
+      display: flex;
+      align-items: center;
       
       mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        margin-right: 4px;
       }
     }
+  }
+  
+  .document-title-area {
+    flex: 1;
+    min-width: 300px;
+    margin-right: 16px;
     
-    .extended-metadata {
-        width: 100%;
-        margin-top: 8px;
-        padding: 12px;
-        background-color: #f5f7fa;
-        border-radius: 8px;
-        max-height: 250px; /* Add max height to allow scrolling if there's a lot of metadata */
-        overflow-y: auto; /* Enable scrolling */
-        
-        .extended-meta-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 16px;
-        }
-        
-        .extended-meta-item {
-          display: flex;
-          flex-direction: column;
-          
-          .meta-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.6);
-            margin-bottom: 2px;
-          }
-          
-          span:not(.meta-label) {
-            font-size: 14px;
-            color: rgba(0, 0, 0, 0.87);
-          }
-        }
+    .doc-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      color: rgba(0, 0, 0, 0.87);
+    }
+    
+    .doc-metadata {
+      .meta-item {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
       }
+      
+      .meta-tag {
+        background-color: #e0e0e0;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      
+      .meta-bullet {
+        margin: 0 4px;
+      }
+    }
+  }
+  
+  .more-button {
+    align-self: flex-start;
+    font-size: 14px;
+    min-width: 120px;
+    color: #004aa5;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .extended-metadata {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    max-height: 250px; /* Add max height to allow scrolling if there's a lot of metadata */
+    overflow-y: auto; /* Enable scrolling */
+    
+    .extended-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    
+    .extended-meta-item {
+      display: flex;
+      flex-direction: column;
+      
+      .meta-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 2px;
+      }
+      
+      span:not(.meta-label) {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.87);
+      }
+    }
+  }
       
       /* Custom scrollbar for extended metadata */
       .extended-metadata::-webkit-scrollbar {
@@ -167,161 +167,240 @@
       .extended-metadata::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
       }
-    }
+}
+
+// Section dividers
+.section-divider {
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  width: 100%;
+  cursor: ns-resize;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   
-  // Section dividers
-  .section-divider {
-    height: 1px;
-    background-color: rgba(0, 0, 0, 0.08);
-    width: 100%;
+  .divider-handle {
+    width: 40px;
+    height: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
   }
   
-  .vertical-divider {
-    width: 1px;
-    background-color: rgba(0, 0, 0, 0.08);
-    height: 100%;
+  &:hover .divider-handle {
+    background-color: #004aa5;
+  }
+}
+
+.vertical-divider {
+  width: 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  height: 100%;
+  cursor: ew-resize;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  .divider-handle {
+    width: 3px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
   }
   
-  // Middle Section: Chat Messages
-  .chat-messages-section {
+  &:hover .divider-handle {
+    background-color: #004aa5;
+  }
+}
+
+// Middle Section: Chat Messages
+.chat-messages-section {
+  flex: 1;
+  min-height: 0; // Important for flexbox overflow
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  
+  .chat-messages {
     flex: 1;
-    min-height: 0; // Important for flexbox overflow
+    padding: 24px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    background-color: #f8f9fa;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+}
+
+// Bottom Section: Split into Prompts and Input
+.bottom-section {
+  display: flex;
+  height: 300px; /* Default height - will be adjustable */
+  min-height: 150px; /* Minimum allowed height */
+  max-height: 600px; /* Maximum allowed height */
+  flex-shrink: 0; /* Prevent section from shrinking */
+  background-color: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Prevent the section itself from scrolling */
+  
+  // Left Side: Suggested Prompts
+  .suggested-prompts-area {
+    width: 50%; /* Default width - will be adjustable */
+    min-width: 200px; /* Minimum allowed width */
+    max-width: 80%; /* Maximum allowed width */
+    height: 100%;
+    min-height: 100%; /* Ensure min height */
+    display: flex; /* Use flexbox */
+    flex-direction: column; /* Stack children vertically */
+    position: relative; /* For positioning children */
+    overflow: hidden; /* Hide any overflow */
+    flex-shrink: 0; /* Prevent from shrinking */
     
-    .chat-messages {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
+    /* Ensure app-suggested-prompts takes full height and width */
+    app-suggested-prompts {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Let internal components handle scrolling */
     }
   }
   
-  // Bottom Section: Split into Prompts and Input
-.bottom-section {
+  // Right Side: Chat Input
+  .chat-input-area {
+    width: 50%; /* Default width - will be adjustable */
+    min-width: 200px; /* Minimum allowed width */
+    max-width: 80%; /* Maximum allowed width */
+    padding: 16px;
     display: flex;
-    height: 300px; /* Increased height for bottom section */
-    min-height: 300px; /* Minimum height */
-    flex-shrink: 0; /* Prevent section from shrinking */
-    background-color: white;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    overflow: hidden; /* Prevent the section itself from scrolling */
+    flex-direction: column;
+    height: 100%;
+    flex-shrink: 0; /* Prevent from shrinking */
     
-    // Left Side: Suggested Prompts
-    .suggested-prompts-area {
-      width: 50%;
-      height: 100%;
-      min-height: 100%; /* Ensure min height */
-      display: flex; /* Use flexbox */
-      flex-direction: column; /* Stack children vertically */
-      position: relative; /* For positioning children */
-      overflow: hidden; /* Hide any overflow */
-      flex-shrink: 0; /* Prevent from shrinking */
-      
-      /* Ensure app-suggested-prompts takes full height and width */
-      app-suggested-prompts {
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: hidden; /* Let internal components handle scrolling */
-      }
-    }
-    
-    // Vertical Divider
-    .vertical-divider {
-      width: 1px;
-      background-color: rgba(0, 0, 0, 0.08);
-      height: 100%;
-      flex-shrink: 0; /* Prevent from shrinking */
-    }
-    
-    // Right Side: Chat Input
-    .chat-input-area {
-      width: 50%;
-      padding: 16px;
+    .input-area {
       display: flex;
-      flex-direction: column;
+      align-items: flex-start; /* Better align with taller textarea */
+      gap: 16px;
       height: 100%;
-      flex-shrink: 0; /* Prevent from shrinking */
+    }
+  }
+}
+
+// Styles for the input container
+.input-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// Add a custom resize handle for the input area
+.input-resize-handle {
+  position: absolute;
+  bottom: 24px; // Position above the character counter
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: transparent;
+  cursor: ns-resize;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  
+  .handle-indicator {
+    width: 40px;
+    height: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+  }
+  
+  &:hover, &.active {
+    .handle-indicator {
+      opacity: 1;
+      background-color: rgba(0, 74, 165, 0.4);
+    }
+  }
+}
+
+// Override Angular Material's textarea styles
+.message-field {
+  flex: 1;
+  position: relative;
+  
+  ::ng-deep {
+    // Target Angular Material's wrapper
+    .mat-mdc-text-field-wrapper {
+      height: auto !important;
+    }
+    
+    // Target the textarea itself
+    textarea.mat-mdc-input-element {
+      resize: none;
+      min-height: 72px;
+      transition: height 0.1s ease;
+    }
+    
+    // Target the form field's subscript wrapper (character counter)
+    .mat-mdc-form-field-subscript-wrapper {
+      height: 18px;
+      position: relative;
+      z-index: 1;
+    }
+  }
+}
+
+.send-button {
+  width: 48px;
+  height: 48px;
+  margin-top: 16px;
+  flex-shrink: 0; /* Prevent from shrinking */
+  
+  mat-icon {
+    margin-left: 2px;
+  }
+}
+
+// Responsive adjustments for smaller screens
+@media (max-width: 768px) {
+  .document-header-section {
+    .back-navigation {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    
+    .document-title-area {
+      width: 100%;
+      margin-right: 0;
+    }
+    
+    .more-button {
+      margin-top: 8px;
+    }
+  }
+  
+  .bottom-section {
+    flex-direction: column;
+    height: auto;
+    min-height: 300px; // Set minimum height for mobile
+    
+    .suggested-prompts-area,
+    .chat-input-area {
+      width: 100%;
+    }
+    
+    .suggested-prompts-area {
+      height: 200px; // Fixed height for prompts area on mobile
+    }
+    
+    .vertical-divider {
+      width: 100%;
+      height: 6px;
       
-      .input-area {
-        display: flex;
-        align-items: flex-start; /* Better align with taller textarea */
-        gap: 16px;
-        height: 100%;
-      }
-      
-      .message-field {
-        flex: 1;
-        
-        ::ng-deep {
-          .mat-mdc-form-field-infix {
-            padding: 12px 0;
-          }
-          
-          .mat-mdc-form-field-subscript-wrapper {
-            height: 18px;
-          }
-          
-          textarea {
-            resize: none;
-            max-height: 140px; /* Increased from 100px */
-            overflow-y: auto;
-          }
-        }
-      }
-      
-      .send-button {
-        width: 48px;
-        height: 48px;
-        margin-top: 16px;
-        flex-shrink: 0; /* Prevent from shrinking */
-        
-        mat-icon {
-          margin-left: 2px;
-        }
+      .divider-handle {
+        width: 40px;
+        height: 3px;
       }
     }
   }
-  // Responsive adjustments for smaller screens
-//   @media (max-width: 768px) {
-//     .document-header-section {
-//       .back-navigation {
-//         width: 100%;
-//         margin-bottom: 8px;
-//       }
-      
-//       .document-title-area {
-//         width: 100%;
-//         margin-right: 0;
-//       }
-      
-//       .more-button {
-//         margin-top: 8px;
-//       }
-//     }
-    
-//     .bottom-section {
-//       flex-direction: column;
-//       height: auto;
-//       min-height: 300px; // Set minimum height for mobile
-      
-//       .suggested-prompts-area,
-//       .chat-input-area {
-//         width: 100%;
-//       }
-      
-//       .suggested-prompts-area {
-//         height: 200px; // Fixed height for prompts area on mobile
-//       }
-      
-//       .vertical-divider {
-//         width: 100%;
-//         height: 1px;
-//       }
-//     }
-//   }
+}

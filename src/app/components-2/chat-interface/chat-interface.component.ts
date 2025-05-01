@@ -108,6 +108,9 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
   visiblePrompts: Prompt[] = [];
   showAllPrompts = false;
   shouldShowMoreButton = false;
+  textareaHeight: number = 72;
+  bottomSectionHeight = 300;
+promptsAreaPercentage = 50;
   
   // Control flags
   private shouldScrollToBottom = true;
@@ -142,6 +145,95 @@ export class ChatInterfaceComponent implements OnInit, OnDestroy, AfterViewCheck
       }
     });
   }
+
+
+/**
+ * Initialize horizontal resize operation
+ * This handles the vertical resizing of the bottom section
+ */
+initHorizontalResize(event: MouseEvent): void {
+  // Prevent text selection during drag
+  event.preventDefault();
+  
+  // Store initial values
+  const startY = event.clientY;
+  const startHeight = this.bottomSectionHeight;
+  
+  // Mouse move handler for resizing
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    // Calculate how far the mouse has moved
+    const deltaY = moveEvent.clientY - startY;
+    
+    // Update height (move up decreases the height)
+    this.bottomSectionHeight = Math.max(150, Math.min(600, startHeight - deltaY));
+    
+    // Apply the new height
+    document.querySelector('.bottom-section')?.setAttribute(
+      'style', 
+      `height: ${this.bottomSectionHeight}px`
+    );
+    
+    // Force scroll to bottom if messages modified
+    this.scrollToBottom();
+  };
+  
+  // Mouse up handler to end resize operation
+  const onMouseUp = () => {
+    // Remove event listeners when done dragging
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+  
+  // Add event listeners for dragging
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
+
+/**
+ * Initialize vertical resize operation
+ * This handles the horizontal resizing between prompts and chat input areas
+ */
+initVerticalResize(event: MouseEvent): void {
+  // Prevent text selection during drag
+  event.preventDefault();
+  
+  // Store initial values
+  const startX = event.clientX;
+  const startPercentage = this.promptsAreaPercentage;
+  const containerWidth = document.querySelector('.bottom-section')?.clientWidth || window.innerWidth;
+  
+  // Mouse move handler for resizing
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    // Calculate how far the mouse has moved as a percentage of container width
+    const deltaX = moveEvent.clientX - startX;
+    const deltaPercentage = (deltaX / containerWidth) * 100;
+    
+    // Update percentage (constrained between 20% and 80%)
+    this.promptsAreaPercentage = Math.max(20, Math.min(80, startPercentage + deltaPercentage));
+    
+    // Apply the new widths
+    document.querySelector('.suggested-prompts-area')?.setAttribute(
+      'style', 
+      `width: ${this.promptsAreaPercentage}%`
+    );
+    
+    document.querySelector('.chat-input-area')?.setAttribute(
+      'style',
+      `width: ${100 - this.promptsAreaPercentage}%`
+    );
+  };
+  
+  // Mouse up handler to end resize operation
+  const onMouseUp = () => {
+    // Remove event listeners when done dragging
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+  
+  // Add event listeners for dragging
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
 
   /**
  * Load the document and initialize the chat with a summary
@@ -348,6 +440,56 @@ private formatDate(dateStr: string | null | undefined): string {
     // Clear the input field
     this.messageControl.reset();
   }
+
+/**
+ * Initialize textarea resize operation
+ * This handles the vertical resizing of the text input area
+ */
+initTextareaResize(event: MouseEvent): void {
+  // Prevent default behavior
+  event.preventDefault();
+  
+  // Add active class to the handle
+  const handle = event.currentTarget as HTMLElement;
+  handle.classList.add('active');
+  
+  // Find the textarea element
+  const textarea = document.querySelector('.message-field textarea') as HTMLTextAreaElement;
+  if (!textarea) return;
+  
+  // Get the current height of the textarea
+  const startHeight = textarea.offsetHeight;
+  const startY = event.clientY;
+  
+  // Mouse move handler for resizing
+  const onMouseMove = (moveEvent: MouseEvent) => {
+    // Calculate how far the mouse has moved
+    const deltaY = moveEvent.clientY - startY;
+    
+    // Calculate new height (move down increases the height)
+    const newHeight = Math.max(72, Math.min(200, startHeight + deltaY));
+    
+    // Apply the new height directly to the textarea
+    textarea.style.height = `${newHeight}px`;
+    
+    // Prevent text selection during resize
+    moveEvent.preventDefault();
+  };
+  
+  // Mouse up handler to end resize operation
+  const onMouseUp = () => {
+    // Remove active class from handle
+    handle.classList.remove('active');
+    
+    // Remove event listeners when done dragging
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+  
+  // Add event listeners for dragging
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
   
   /**
    * Handle key events in the textarea
@@ -362,14 +504,7 @@ private formatDate(dateStr: string | null | undefined): string {
   /**
    * Auto-resize textarea
    */
-  autoResize(textarea: HTMLTextAreaElement): void {
-    // Reset height to recalculate
-    textarea.style.height = 'auto';
-    
-    // Set the height based on scrollHeight (with a max of 100px)
-    const newHeight = Math.min(textarea.scrollHeight, 100);
-    textarea.style.height = `${newHeight}px`;
-  }
+  
   
   /**
    * Select a prompt from the suggested prompts
@@ -381,7 +516,7 @@ private formatDate(dateStr: string | null | undefined): string {
     setTimeout(() => {
       if (this.messageInput?.nativeElement) {
         this.messageInput.nativeElement.focus();
-        this.autoResize(this.messageInput.nativeElement);
+        //this.autoResize(this.messageInput.nativeElement);
       }
     }, 0);
   }

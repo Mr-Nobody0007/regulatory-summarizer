@@ -79,7 +79,8 @@ export class TextFormattingService {
           "style": {
             "backgroundColor": "#FFEB3B",
             "padding": "0 4px",
-            "borderRadius": "2px"
+            "borderRadius": "2px",
+            "display": "inline-block"
           }
         }
       },
@@ -119,7 +120,7 @@ export class TextFormattingService {
         "effect": {
           "type": "definition",
           "style": {
-            "fontWeight": "bold",
+            "fontWeight": "500",
             "borderBottom": "1px dotted #333",
             "cursor": "help"
           }
@@ -135,9 +136,11 @@ export class TextFormattingService {
           "style": {
             "backgroundColor": "#FFCCBC",
             "color": "#D84315",
-            "padding": "2px 6px",
-            "borderLeft": "3px solid #D84315",
-            "borderRadius": "2px"
+            "padding": "8px 12px",
+            "borderLeft": "4px solid #D84315",
+            "borderRadius": "4px",
+            "display": "block",
+            "margin": "10px 0"
           }
         }
       },
@@ -189,12 +192,12 @@ export class TextFormattingService {
         "name": "deadlineHighlight",
         "description": "Automatically highlights deadline phrases",
         "example": "The deadline is January 15, 2026",
-        "pattern": "(?i)(deadline|due date|by|before)\\s+([A-Za-z]+ \\d{1,2},? \\d{4}|\\d{1,2}/\\d{1,2}/\\d{2,4})",
+        "pattern": "(deadline|due date|by|before)\\s+([A-Za-z]+ \\d{1,2},? \\d{4}|\\d{1,2}\\/\\d{1,2}\\/\\d{2,4})",
         "effect": {
           "type": "deadline",
           "style": {
             "backgroundColor": "#FFD180",
-            "fontWeight": "bold",
+            "fontWeight": "500",
             "padding": "0 4px",
             "borderRadius": "2px"
           }
@@ -227,10 +230,23 @@ export class TextFormattingService {
         }
       },
       {
+        "name": "parenthesesContent",
+        "description": "Formats text inside parentheses",
+        "example": "This text has (important information) inside parentheses",
+        "pattern": "\\((.*?)\\)",
+        "effect": {
+          "type": "parentheses",
+          "style": {
+            "fontStyle": "italic",
+            "color": "#555555"
+          }
+        }
+      },
+      {
         "name": "keyTerms",
         "description": "Highlights industry-specific key terms",
         "example": "Financial institutions must maintain adequate capital reserves",
-        "pattern": "(?i)(financial institution|capital reserves|regulatory compliance|fiduciary duty|enforcement action)",
+        "pattern": "(financial institution|capital reserves|regulatory compliance|fiduciary duty|enforcement action)",
         "effect": {
           "type": "keyterm",
           "style": {
@@ -269,52 +285,74 @@ export class TextFormattingService {
     // Try to load the formatting rules from a JSON file on initialization
     this.loadFormattingRules();
   }
+  // Fix for text-formatting.service.ts
+// Find the formatText method and update the style formatting code
+
+/**
+ * Format text according to the formatting rules
+ * @param text The text to format
+ * @returns Safely formatted HTML
+ */
+formatText(text: string): SafeHtml {
+  if (!text || !this.formattingRules.settings.enabled) {
+    return this.sanitizer.bypassSecurityTrustHtml(text || '');
+  }
   
-  /**
-   * Format text according to the formatting rules
-   * @param text The text to format
-   * @returns Safely formatted HTML
-   */
-  formatText(text: string): SafeHtml {
-    if (!text || !this.formattingRules.settings.enabled) {
-      return this.sanitizer.bypassSecurityTrustHtml(text || '');
-    }
-    
-    let formattedText = text;
-    
-    // Apply explicit formatting rules (user-defined markup)
-    this.formattingRules.formattingRules.forEach(rule => {
+  let formattedText = text;
+  
+  // Apply explicit formatting rules (user-defined markup)
+  for (const rule of this.formattingRules.formattingRules) {
+    try {
       const regex = new RegExp(rule.pattern, 'g');
       
       formattedText = formattedText.replace(regex, (match, content) => {
-        // Create a styled span with the appropriate styling
+        // Convert camelCase properties to kebab-case and add semicolons
+        // This is the critical fix!
         const styles = Object.entries(rule.effect.style)
-          .map(([property, value]) => `${property}:${value}`)
-          .join(';');
+          .map(([property, value]) => {
+            // Convert camelCase to kebab-case
+            const kebabProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+            return `${kebabProperty}: ${value};`;
+          })
+          .join(' ');
         
+        // Use appropriate class name for styling
         return `<span class="formatted-text ${rule.effect.type}" style="${styles}" 
                 title="${rule.description}">${content}</span>`;
       });
-    });
-    
-    // Apply automatic formatting rules
-    this.formattingRules.automaticFormatting.forEach(rule => {
-      const regex = new RegExp(rule.pattern, 'g');
+    } catch (error) {
+      console.error(`Error applying formatting rule '${rule.name}':`, error);
+    }
+  }
+  
+  // Apply automatic formatting rules
+  for (const rule of this.formattingRules.automaticFormatting) {
+    try {
+      // Changed to use 'gi' flag for case-insensitive matching
+      const regex = new RegExp(rule.pattern, 'gi');
       
       formattedText = formattedText.replace(regex, (match) => {
-        // Create a styled span with the appropriate styling
+        // Convert camelCase properties to kebab-case and add semicolons
+        // This is the critical fix!
         const styles = Object.entries(rule.effect.style)
-          .map(([property, value]) => `${property}:${value}`)
-          .join(';');
+          .map(([property, value]) => {
+            // Convert camelCase to kebab-case
+            const kebabProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+            return `${kebabProperty}: ${value};`;
+          })
+          .join(' ');
         
         return `<span class="formatted-text ${rule.effect.type}" style="${styles}" 
                 title="${rule.description}">${match}</span>`;
       });
-    });
-    
-    // Return as SafeHtml to bypass Angular's sanitization
-    return this.sanitizer.bypassSecurityTrustHtml(formattedText);
+    } catch (error) {
+      console.error(`Error applying automatic formatting rule '${rule.name}':`, error);
+    }
   }
+  
+  // Return as SafeHtml to bypass Angular's sanitization
+  return this.sanitizer.bypassSecurityTrustHtml(formattedText);
+}
   
   /**
    * Load formatting rules from an external JSON file

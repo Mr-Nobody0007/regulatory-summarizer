@@ -152,6 +152,46 @@ export class RegulatoryService {
     return feedbackArray;
   }
 
+   formattingTestText = `# Formatting Rules Test Text
+
+## Explicit Formatting Tests
+
+**This text should be bold** using the boldImportant rule.
+
+_This text should be italic_ using the italicEmphasis rule.
+
+==This text should have a yellow highlight== using the highlightCritical rule.
+
+The deadline is {date:January 15, 2026} using the dateFormatting rule.
+
+As referenced in {cite:12 CFR 1026.43}, lenders must follow certain guidelines according to the legalCitation rule.
+
+A {def:qualified mortgage} meets certain requirements as defined by the CFPB using the definitionTerm rule.
+
+{warning:Failure to comply with these regulations may result in significant penalties and enforcement actions.} This should appear in a warning box.
+
+Financial institutions must implement \`OAuth 2.0\` authentication protocols to secure their systems. This should use codeSnippet formatting.
+
+For more detailed information, see {section:1033.5(b)} of the regulation. This section reference should be highlighted.
+
+{reg:12 CFR Part 1033} outlines requirements for financial data rights. This should use the regulation formatting.
+
+## Automatic Formatting Tests
+
+The deadline for submission is December 31, 2025. This should be automatically highlighted without markup.
+
+The regulatory fine can be up to $10,000 per violation, with some cases reaching $1.2 million in total penalties. These monetary amounts should be green.
+
+According to recent studies, 75% of financial institutions have updated their systems to meet the new requirements. This percentage should be purple.
+
+Financial institutions must maintain adequate capital reserves to meet the regulatory compliance standards and avoid enforcement action related to their fiduciary duty. These key terms should be underlined with dotted lines.
+
+As described in 12 CFR 1026.43, the regulation provides clear guidelines for the industry. This CFR reference should be formatted without explicit markup.
+
+Remember that before January 1, 2026, all institutions must complete the certification process. This deadline should be detected.`;
+
+// You can use this variable in your application like this:
+// const formattedText = textFormattingService.formatText(formattingTestText);
   /**
    * Submit feedback to the API
    * @param feedback The feedback from the dialog
@@ -521,7 +561,12 @@ export class RegulatoryService {
         publicationDate: this.formatDateYYYYMMDD(item.publication_date),
         agency: item.agencies?.[0]?.name || 'Unknown Agency',
         documentType: item.type || 'Document',
-        summary: item.abstract || 'Failed to generate AI summary. Showing document abstract instead.',
+
+
+
+
+        
+        summary: item.abstract || this.formattingTestText,
         documentNumber: item.document_number,
         startPage: item.start_page,
         endPage: item.end_page,

@@ -349,6 +349,15 @@ formatText(text: string): SafeHtml {
       console.error(`Error applying automatic formatting rule '${rule.name}':`, error);
     }
   }
+  formattedText = formattedText.replace(/<a\s+(?:[^>]*?\s+)?href=["']([^"']*)["']([^>]*)>/gi, 
+    (match, url, restAttributes) => {
+      // Only add target="_blank" if it's not already present
+      if (!match.includes('target="_blank"')) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer"${restAttributes}>`;
+      }
+      return match;
+    }
+  );
   
   // Return as SafeHtml to bypass Angular's sanitization
   return this.sanitizer.bypassSecurityTrustHtml(formattedText);

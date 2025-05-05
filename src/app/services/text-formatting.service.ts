@@ -203,6 +203,20 @@ export class TextFormattingService {
           }
         }
       },
+      // Add this new rule to the automaticFormatting array in the formattingRules object
+
+{
+  "name": "bracketedReferences",
+  "description": "Makes bracketed references italic when they contain section, Page/P with comma, or federal",
+  "example": "See [section 123] or (Page 45, paragraph 2) or {federal regulations}",
+  "pattern": "(\\[|\\(|\\{)[^\\]\\)\\}]*(section|Page|P[,]|federal)[^\\]\\)\\}]*(\\]|\\)|\\})",
+  "effect": {
+    "type": "bracketedReference",
+    "style": {
+      "fontStyle": "italic"
+    }
+  }
+},
       {
         "name": "monetaryAmount",
         "description": "Makes dollar amounts green",

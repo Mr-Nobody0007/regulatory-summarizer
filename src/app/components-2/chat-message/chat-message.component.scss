@@ -28,11 +28,15 @@
     color: white;
     border-bottom-right-radius: 4px; // Sharp corner to indicate sender
     
-    .message-timestamp {
-      color: rgba(255, 255, 255, 0.7);
-      text-align: right;
-      font-size: 12px;
+    .message-footer {
+      display: flex;
+      justify-content: flex-end;
       margin-top: 4px;
+      
+      .message-timestamp {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+      }
     }
   }
   
@@ -102,45 +106,74 @@
 .message-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end; // Align items to the bottom
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.message-timestamp {
-  color: rgba(0, 0, 0, 0.5);
-  font-size: 12px;
-}
-
 .message-actions {
   display: flex;
   align-items: center;
-  gap: 4px; // Closer spacing for buttons
+  gap: 8px; // Space between buttons
   
-  button {
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
+  .text-icon-button {
+    min-width: 0;
+    padding: 0 8px;
+    height: 36px;
+    line-height: 36px;
+    color: rgba(0, 0, 0, 0.74);
     
     mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: rgba(0, 0, 0, 0.54);
+      margin-right: 4px;
+    }
+    
+    span {
+      font-size: 14px;
     }
     
     &:hover {
-      mat-icon {
-        color: #004aa5; // Bank of America blue on hover
-      }
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+  
+  .feedback-button {
+    background-color: white;
+    color: #004aa5;
+    border: 1px solid #004aa5;
+    border-radius: 18px;
+    padding: 0 16px;
+    height: 36px;
+    font-size: 14px;
+    font-weight: 500;
+    
+    &:hover {
+      background-color: rgba(0, 74, 165, 0.04);
+    }
+    
+    &:disabled {
+      color: rgba(0, 0, 0, 0.38);
+      border-color: rgba(0, 0, 0, 0.12);
     }
   }
 }
 
-.request-id {
-  margin-top: 8px;
-  font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
-  font-style: italic;
+.message-metadata {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  
+  .request-id {
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.4);
+    font-style: italic;
+  }
+  
+  .message-timestamp {
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 12px;
+  }
 }

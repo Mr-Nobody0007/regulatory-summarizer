@@ -4,8 +4,10 @@
     <div class="message-content">
       {{ message.content }}
     </div>
-    <div class="message-timestamp">
-      {{ formatTimestamp(message.timestamp) }}
+    <div class="message-footer">
+      <div class="message-timestamp">
+        {{ formatTimestamp(message.timestamp) }}
+      </div>
     </div>
   </div>
 
@@ -20,35 +22,38 @@
     <!-- Message Content with Formatting -->
     <div class="message-content" [innerHTML]="formattedContent"></div>
     
-    <!-- Timestamp and Action Buttons (only for non-loading AI messages) -->
+    <!-- Footer with Actions and Metadata (only for non-loading AI messages) -->
     <div *ngIf="!message.isLoading" class="message-footer">
-      <div class="message-timestamp">
-        {{ formatTimestamp(message.timestamp) }}
+      <!-- Left-aligned Action Buttons -->
+      <div class="message-actions">
+        <button mat-button class="text-icon-button" (click)="copyText()">
+          <mat-icon>content_copy</mat-icon>
+          <span>Copy</span>
+        </button>
+        
+        <button mat-button class="text-icon-button" (click)="downloadText()">
+          <mat-icon>download</mat-icon>
+          <span>Download</span>
+        </button>
+        
+        <button 
+          mat-button 
+          class="feedback-button" 
+          (click)="provideFeedback()" 
+          [disabled]="!message.requestId">
+          Leave Feedback
+        </button>
       </div>
       
-      <div class="message-actions">
-        <button mat-icon-button (click)="copyText()" matTooltip="Copy to clipboard">
-          <mat-icon>content_copy</mat-icon>
-        </button>
-        
-        <button mat-icon-button (click)="downloadText()" matTooltip="Download as text">
-          <mat-icon>download</mat-icon>
-        </button>
-        
-        <!-- Feedback Button - Show regardless of requestId for consistency -->
-        <button 
-          mat-icon-button 
-          (click)="provideFeedback()" 
-          matTooltip="Provide feedback"
-          [disabled]="!message.requestId">
-          <mat-icon>feedback</mat-icon>
-        </button>
+      <!-- Right-aligned Metadata -->
+      <div class="message-metadata">
+        <div *ngIf="message.requestId" class="request-id">
+          Request ID: {{ message.requestId }}
+        </div>
+        <div class="message-timestamp">
+          {{ formatTimestamp(message.timestamp) }}
+        </div>
       </div>
-    </div>
-    
-    <!-- Request ID (if available) - for debugging, can be removed in production -->
-    <div *ngIf="message.requestId" class="request-id">
-      Request ID: {{ message.requestId }}
     </div>
   </div>
 </div>

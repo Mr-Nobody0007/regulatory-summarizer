@@ -500,6 +500,41 @@ Remember that before January 1, 2026, all institutions must complete the certifi
     );
   }
 
+
+  /**
+ * Fetch document metadata from the dedicated API endpoint
+ * @param documentNumber Document number to fetch metadata for
+ * @returns Observable with the document metadata
+ */
+fetchDocumentMetadata(documentNumber: string): Observable<any> {
+  // Construct the API URL
+  const url = `${this.apiBaseUrl}/api/v1/open-ai/federal-registry-doc?document-number=${documentNumber}`;
+  
+  return from(
+    fetch(url, {
+      method: 'GET',
+      credentials: 'include', // Include credentials as in other API calls
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+  ).pipe(
+    map(response => {
+      console.log('Document metadata response:', response);
+      return response;
+    }),
+    catchError(error => {
+      console.error("Error fetching document metadata", error);
+      return throwError(() => new Error(error.message || "Error fetching document metadata"));
+    })
+  );
+}
+
   // Helper methods for processing documentDto
   private extractAgencyNames(agencies: any[] | null): string {
     if (!agencies || !Array.isArray(agencies) || agencies.length === 0) {

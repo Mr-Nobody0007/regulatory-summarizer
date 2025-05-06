@@ -238,55 +238,70 @@ initVerticalResize(event: MouseEvent): void {
   /**
  * Load the document and initialize the chat with a summary
  */
-  private loadDocument(input: string, isUrl: boolean, initialPrompt: string): void {
-    this.isLoading = true;
-    this.isInputDisabled = true;
-    this.error = null;
-    
-    // Initialize document info with loading state
-    this.documentInfo = {
-      id: input,
-      title: 'Loading document...',
-      agency: '',
-      documentType: '',
-      publicationDate: '',
-      summary: '',
-      isUrl: isUrl
-    };
-    
-    // Add the initial system message
-    this.addSystemMessage('Loading document summary...');
-    
-    // Call the service to get the document summary
-    this.regulatoryService.summarizeDocumentWithPrompt(input, initialPrompt, isUrl)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (docSummary) => {
-          console.log('Document Summary Response:', docSummary);
-          console.log('Initial requestId:', docSummary.regulationRequestId);
-          
-          // Process documentation metadata from the DTO
-          this.processDocumentMetadata(docSummary);
-          
-          // Replace the loading message with the summary and include the requestId
-          this.replaceLoadingMessage(docSummary.summary, false, docSummary.regulationRequestId);
-          
-          // Load suggested prompts based on document type
-          this.loadSuggestedPrompts(docSummary.documentType);
-          
-          this.isLoading = false;
-          this.isInputDisabled = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          this.error = `Failed to load document: ${error.message || 'Unknown error'}`;
-          this.replaceLoadingMessage(`Error: ${this.error}`);
-          this.isLoading = false;
-          this.isInputDisabled = false;
-          this.cdr.detectChanges();
-        }
-      });
-  }
+ // In chat-interface.component.ts
+ private loadDocument(input: string, isUrl: boolean, initialPrompt: string): void {
+  this.isInputDisabled = true;
+  this.error = null;
+  
+  // Initialize document info with minimal data
+  this.documentInfo = {
+    id: input,
+    title: 'Document',
+    agency: '',
+    documentType: '',
+    publicationDate: '',
+    summary: '',
+    isUrl: isUrl
+  };
+  
+  // First, fetch minimal metadata to initialize the UI
+  this.regulatoryService.fetchDocumentMetadata(input)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (metadata) => {
+        // Update basic document info from metadata
+       
+        
+        // Now treat the initial prompt as a user question
+        this.addUserMessage(initialPrompt);
+        
+        // Add a loading message from the system
+        const loadingMessageId = this.addSystemMessage('', true);
+        
+        // Use the same method as for regular questions
+        this.regulatoryService.askDocumentQuestion(input, initialPrompt, isUrl)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (response) => {
+              // Replace the loading message with the actual response
+              this.replaceMessage(loadingMessageId, response.answer, false, response.requestId);
+              
+              // Load suggested prompts based on document type
+              this.loadSuggestedPrompts("Notice");
+              
+              this.isInputDisabled = false;
+              this.cdr.detectChanges();
+            },
+            error: (error) => {
+              // Replace with error message
+              this.replaceMessage(
+                loadingMessageId, 
+                `Error: Failed to get response. ${error.message || 'Please try again.'}`,
+                false
+              );
+              this.isInputDisabled = false;
+              this.cdr.detectChanges();
+            }
+          });
+      },
+      error: (error) => {
+        // If we can't even get metadata, show error
+        this.error = `Failed to load document: ${error.message || 'Unknown error'}`;
+        this.isInputDisabled = false;
+        this.cdr.detectChanges();
+      }
+    });
+}
 
 /**
  * Process document metadata from the DTO

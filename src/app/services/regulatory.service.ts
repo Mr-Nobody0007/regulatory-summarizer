@@ -15,6 +15,14 @@ export interface QuestionResponse {
   requestId?: number;
 }
 
+export interface WhitelistedUrl {
+  urlId: number;
+  url: string;
+  name: string;
+  isDeleted: boolean;
+  isDisplay: boolean;
+}
+
 export interface FeedbackResponse {
   success: boolean;
   message?: string;
@@ -217,6 +225,39 @@ Remember that before January 1, 2026, all institutions must complete the certifi
           });
         })
       );
+  }
+
+
+  getWhitelistedUrls(): Observable<WhitelistedUrl[]> {
+    // Use the API endpoint for whitelisted URLs
+    const url = `${this.apiBaseUrl}/api/v1/Setting/get-url-whitelist`;
+    
+    return from(
+      fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+    ).pipe(
+      map((response: any) => {
+        // Filter to only include active URLs that should be displayed
+        return response.data.filter((url: WhitelistedUrl) => 
+          !url.isDeleted && url.isDisplay
+        );
+      }),
+      catchError(error => {
+        console.error("Error fetching whitelisted URLs", error);
+        // Return an empty array as fallback
+        return of([]);
+      })
+    );
   }
 
   private formatDateYYYYMMDD(dateString: string | null): string {

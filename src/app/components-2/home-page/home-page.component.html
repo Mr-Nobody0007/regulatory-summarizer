@@ -1,175 +1,232 @@
 <div class="home-container">
-    <mat-card class="assistant-card">
-      <mat-card-content>
-        <!-- Sparkle Icon Header -->
-        <div class="sparkle-container">
-          <div class="sparkle-icon">
-            <mat-icon>auto_awesome</mat-icon>
-          </div>
-          <h1 class="card-title">Regulatory AI document assistant</h1>
+  <mat-card class="assistant-card">
+    <mat-card-content>
+      <!-- Sparkle Icon Header -->
+      <div class="sparkle-container">
+        <div class="sparkle-icon">
+          <mat-icon>auto_awesome</mat-icon>
         </div>
-        
-        <!-- Input Method Selection Tabs -->
-        <div class="input-selection-tabs">
-          <div class="tab-buttons">
-            <button 
-              mat-stroked-button 
-              [class.active]="selectedInputMethod === 'search'"
-              (click)="selectInputMethod('search')">
-              <mat-icon>search</mat-icon>
-              Search documents
-            </button>
-            <button 
-              mat-stroked-button 
-              [class.active]="selectedInputMethod === 'url'"
-              (click)="selectInputMethod('url')">
-              <mat-icon>link</mat-icon>
-              URL input
-            </button>
-          </div>
-        </div>
-  
-        <!-- Document Search UI -->
-        <div *ngIf="selectedInputMethod === 'search'" class="search-section">
-          <h3>Search for regulatory documents</h3>
-          
-          <!-- Search container with keyboard navigation -->
-          <div class="search-container" #searchContainer>
-            <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
-              <input 
-                matInput 
-                [formControl]="searchControl" 
-                type="text" 
-                placeholder="Search for a document"
-                autocomplete="off"
-                (focus)="showSearchResults = true"
-                (keydown)="handleSearchKeydown($event)">
-              <mat-icon matPrefix>search</mat-icon>
-              <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
-              <button 
-                *ngIf="searchControl.value && !isLoading" 
-                matSuffix 
-                mat-icon-button 
-                aria-label="Clear" 
-                (click)="clearSearch()">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-  
-            <!-- Google-style Dropdown Results with keyboard accessibility -->
-            <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value" class="search-dropdown">
-              <div 
-                *ngFor="let result of searchResults; let i = index" 
-                class="search-result-item"
-                [class.focused]="focusedResultIndex === i"
-                role="option"
-                [attr.aria-selected]="focusedResultIndex === i"
-                [tabindex]="focusedResultIndex === i ? 0 : -1"
-                (click)="selectDocument(result)"
-                (keydown.enter)="selectDocument(result)">
-                <mat-icon>description</mat-icon>
-                <div class="result-details">
-                  <div class="result-title">({{ result.id }}) {{ result.title }}</div>
-                  <div class="result-meta">
-                    {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
-                  </div>
-                </div>
-              </div>
-            </div>
-  
-            <!-- No Results Message (appears in dropdown) -->
-            <div *ngIf="showSearchResults && searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
-              <div class="no-results-message">
-                <mat-icon>search_off</mat-icon>
-                <span>No documents found matching your search. Please try different keywords.</span>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Selected Document Display -->
-          <div *ngIf="selectedDocument" class="selected-document">
-            <mat-card>
-              <mat-card-content>
-                <div class="document-info">
-                  <h4>({{ selectedDocument.id }}) {{ selectedDocument.title }}</h4>
-                  <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }} • Published: {{ selectedDocument.publicationDate }}</p>
-                </div>
-                <button mat-icon-button color="primary" (click)="clearDocumentSelection()">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </mat-card-content>
-            </mat-card>
-          </div>
-          
-          <!-- Footer Info -->
-          <div class="search-footer-info">
-            <p>I am able to summarize and guide you on regulatory documents from the 
-              <a href="https://www.ecfr.gov/" target="_blank">Code of Federal Regulations database (eCFR)</a>
-            </p>
-          </div>
-        </div>
-  
-        <!-- URL Input UI -->
-        <div *ngIf="selectedInputMethod === 'url'" class="url-section">
-          <h3>Enter URL for a regulatory document</h3>
-          
-          <form [formGroup]="urlForm" (ngSubmit)="onUrlSubmit()">
-            <mat-form-field appearance="outline" class="url-field">
-              <mat-label>Document URL</mat-label>
-              <input matInput formControlName="url" type="url" placeholder="https://www.federalregister.gov/documents/...">
-              <mat-icon matPrefix>link</mat-icon>
-              <button *ngIf="urlControl?.value" matSuffix mat-icon-button aria-label="Clear" 
-                (click)="urlControl?.reset()">
-                <mat-icon>close</mat-icon>
-              </button>
-              <mat-error *ngIf="urlControl?.hasError('pattern')">
-                Please enter a valid URL (must start with http:// or https://)
-              </mat-error>
-            </mat-form-field>
-            
-            <div class="url-actions">
-              <button 
-                type="submit" 
-                mat-raised-button 
-                color="primary"
-                [disabled]="urlForm.invalid || isUrlSubmitted">
-                Submit URL
-              </button>
-            </div>
-          </form>
-          
-          <!-- Submitted URL Display -->
-          <div *ngIf="isUrlSubmitted" class="submitted-url">
-            <mat-card>
-              <mat-card-content>
-                <div class="url-info">
-                  <h4>Document URL</h4>
-                  <p class="url-text">{{ urlControl?.value }}</p>
-                </div>
-                <button mat-icon-button color="primary" (click)="clearUrl()">
-                  <mat-icon>close</mat-icon>
-                </button>
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </div>
-  
-        <!-- Selected Prompt Display -->
-        <div *ngIf="selectedPrompt" class="selected-prompt">
-          <div class="prompt-label">{{ selectedPrompt.label }}</div>
-          <div class="prompt-text">{{ selectedPrompt.prompt }}</div>
-        </div>
-        
-        <!-- Summarize Button -->
-        <div class="summarize-button-container" *ngIf="canSummarize">
+        <h1 class="card-title">Regulatory AI document assistant</h1>
+      </div>
+      
+      <!-- Input Method Selection Tabs -->
+      <div class="input-selection-tabs">
+        <div class="tab-buttons">
           <button 
-            mat-raised-button 
-            color="primary" 
-            (click)="summarizeDocument()">
-            Summarize
+            mat-stroked-button 
+            [class.active]="selectedInputMethod === 'search'"
+            (click)="selectInputMethod('search')">
+            <mat-icon>search</mat-icon>
+            Search documents
+          </button>
+          <button 
+            mat-stroked-button 
+            [class.active]="selectedInputMethod === 'url'"
+            (click)="selectInputMethod('url')">
+            <mat-icon>link</mat-icon>
+            URL input
           </button>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+      </div>
+
+      <!-- Document Search UI -->
+      <div *ngIf="selectedInputMethod === 'search'" class="search-section">
+        <h3>Search for regulatory documents</h3>
+        
+        <!-- Search container with keyboard navigation -->
+        <div class="search-container" #searchContainer>
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
+            <input 
+              matInput 
+              [formControl]="searchControl" 
+              type="text" 
+              placeholder="Search for a document"
+              autocomplete="off"
+              (focus)="showSearchResults = true"
+              (keydown)="handleSearchKeydown($event)">
+            <mat-icon matPrefix>search</mat-icon>
+            <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
+            <button 
+              *ngIf="searchControl.value && !isLoading" 
+              matSuffix 
+              mat-icon-button 
+              aria-label="Clear" 
+              (click)="clearSearch()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <!-- Google-style Dropdown Results with keyboard accessibility -->
+          <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value" class="search-dropdown">
+            <div 
+              *ngFor="let result of searchResults; let i = index" 
+              class="search-result-item"
+              [class.focused]="focusedResultIndex === i"
+              role="option"
+              [attr.aria-selected]="focusedResultIndex === i"
+              [tabindex]="focusedResultIndex === i ? 0 : -1"
+              (click)="selectDocument(result)"
+              (keydown.enter)="selectDocument(result)">
+              <mat-icon>description</mat-icon>
+              <div class="result-details">
+                <div class="result-title">({{ result.id }}) {{ result.title }}</div>
+                <div class="result-meta">
+                  {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results Message (appears in dropdown) -->
+          <div *ngIf="showSearchResults && searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
+            <div class="no-results-message">
+              <mat-icon>search_off</mat-icon>
+              <span>No documents found matching your search. Please try different keywords.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Document Display -->
+        <div *ngIf="selectedDocument" class="selected-document">
+          <mat-card>
+            <mat-card-content>
+              <div class="document-info">
+                <h4>({{ selectedDocument.id }}) {{ selectedDocument.title }}</h4>
+                <p>{{ selectedDocument.documentType }} • {{ selectedDocument.agencyName }} • Published: {{ selectedDocument.publicationDate }}</p>
+              </div>
+              <button mat-icon-button color="primary" (click)="clearDocumentSelection()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        
+        <!-- Footer Info -->
+        <div class="search-footer-info">
+          <p>I am able to summarize and guide you on regulatory documents from the 
+            <a href="https://www.ecfr.gov/" target="_blank">Code of Federal Regulations database (eCFR)</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- URL Input UI -->
+      <div *ngIf="selectedInputMethod === 'url'" class="url-section">
+        <h3>Enter URL for a regulatory document</h3>
+        
+        <form [formGroup]="urlForm" (ngSubmit)="onUrlSubmit()">
+          <mat-form-field appearance="outline" class="url-field">
+            <mat-label>Document URL</mat-label>
+            <input 
+              matInput 
+              formControlName="url" 
+              type="url" 
+              placeholder="https://www.federalregister.gov/documents/...">
+            <mat-icon matPrefix>link</mat-icon>
+            
+            <!-- Info button for whitelisted URLs -->
+            <button 
+              matSuffix 
+              mat-icon-button 
+              aria-label="Approved sources info"
+              type="button"
+              matTooltip="View approved sources"
+              (click)="toggleUrlInfoBox()">
+              <mat-icon>info_outline</mat-icon>
+            </button>
+            
+            <!-- Clear button -->
+            <button 
+              *ngIf="urlControl?.value" 
+              matSuffix 
+              mat-icon-button 
+              type="button"
+              aria-label="Clear" 
+              (click)="urlControl?.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
+            
+            <!-- Error messages -->
+            <mat-error *ngIf="urlControl?.hasError('pattern')">
+              URL must start with http:// or https://
+            </mat-error>
+            <mat-error *ngIf="urlControl?.hasError('domainNotWhitelisted')">
+              URL must be from an approved source. Click the info icon to see the list.
+            </mat-error>
+            <mat-error *ngIf="urlControl?.hasError('invalidFileType')">
+              Only documents with .pdf, .txt, or .xml extensions are allowed.
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Whitelisted URLs info box -->
+          <div *ngIf="showUrlInfoBox" class="url-info-box">
+            <div class="info-box-header">
+              <h4>Approved Document Sources</h4>
+              <button mat-icon-button (click)="closeUrlInfoBox()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div class="info-box-content">
+              <p class="info-text">Documents must be from one of the following approved sources:</p>
+              <div *ngIf="isLoadingWhitelistedUrls" class="loading-sources">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Loading approved sources...</span>
+              </div>
+              <ul *ngIf="!isLoadingWhitelistedUrls && whitelistedUrls.length > 0" class="sources-list">
+                <li *ngFor="let source of whitelistedUrls">
+                  <a [href]="source.url" target="_blank" rel="noopener noreferrer">
+                    {{ source.name }}
+                  </a>
+                </li>
+              </ul>
+              <p class="file-types-info">
+                Only documents with the following extensions are supported: .pdf, .txt, .xml
+              </p>
+            </div>
+          </div>
+          
+          <div class="url-actions">
+            <button 
+              type="submit" 
+              mat-raised-button 
+              color="primary"
+              [disabled]="urlForm.invalid || isUrlSubmitted">
+              Submit URL
+            </button>
+          </div>
+        </form>
+        
+        <!-- Submitted URL Display -->
+        <div *ngIf="isUrlSubmitted" class="submitted-url">
+          <mat-card>
+            <mat-card-content>
+              <div class="url-info">
+                <h4>Document URL</h4>
+                <p class="url-text">{{ urlControl?.value }}</p>
+              </div>
+              <button mat-icon-button color="primary" (click)="clearUrl()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Selected Prompt Display -->
+      <div *ngIf="selectedPrompt" class="selected-prompt">
+        <div class="prompt-label">{{ selectedPrompt.label }}</div>
+        <div class="prompt-text">{{ selectedPrompt.prompt }}</div>
+      </div>
+      
+      <!-- Summarize Button -->
+      <div class="summarize-button-container" *ngIf="canSummarize">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="summarizeDocument()">
+          Summarize
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

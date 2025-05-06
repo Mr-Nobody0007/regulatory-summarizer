@@ -1,7 +1,7 @@
 // src/app/components-2/home-page/home-page.component.ts
 import { Component, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, firstValueFrom } from 'rxjs';
 
 import { RegulatoryService } from '../../services/regulatory.service';
 import { PromptService, Prompt } from '../../services/prompt.service';
@@ -25,6 +26,14 @@ export interface SearchResult {
   // Additional fields as needed
 }
 
+export interface WhitelistedUrl {
+  urlId: number;
+  url: string;
+  name: string;
+  isDeleted: boolean;
+  isDisplay: boolean;
+}
+
 export type InputMethod = 'search' | 'url';
 
 @Component({
@@ -38,7 +47,8 @@ export type InputMethod = 'search' | 'url';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.scss']
@@ -62,6 +72,12 @@ export class HomePageComponent implements OnDestroy {
   searchControl = new FormControl('');
   urlForm: FormGroup;
   
+  // URL validation
+  whitelistedUrls: WhitelistedUrl[] = [];
+  showUrlInfoBox: boolean = false;
+  urlValidationErrorMessage: string = '';
+  isLoadingWhitelistedUrls: boolean = false;
+  
   private destroy$ = new Subject<void>();
   
   constructor(
@@ -71,9 +87,22 @@ export class HomePageComponent implements OnDestroy {
     private promptService: PromptService,
     private documentDataService: DocumentDataService
   ) {
+    // Load whitelisted URLs from API
+    this.loadWhitelistedUrls();
+    
     // Initialize URL form with validation
     this.urlForm = this.fb.group({
-      url: ['', [Validators.required, Validators.pattern('https?://.*')]]
+      url: ['', [
+        Validators.required, 
+        Validators.pattern('https?://.*'),
+        this.whitelistedDomainValidator(),
+        this.allowedFileExtensionValidator()
+      ]]
+    });
+    
+    // Listen for URL input changes to update validation messages
+    this.urlForm.get('url')?.valueChanges.subscribe(value => {
+      this.updateUrlValidationMessage();
     });
     
     // Setup search listener
@@ -83,6 +112,140 @@ export class HomePageComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  
+  /**
+   * Load whitelisted URLs from API
+   */
+  /**
+ * Load whitelisted URLs from API
+ */
+private loadWhitelistedUrls(): void {
+  this.isLoadingWhitelistedUrls = true;
+  
+  // Use the service to fetch whitelisted URLs
+  this.regulatoryService.getWhitelistedUrls()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (urls) => {
+        // Direct array of URL objects
+        this.whitelistedUrls = urls;
+        this.isLoadingWhitelistedUrls = false;
+      },
+      error: (error) => {
+        console.error('Error loading whitelisted URLs:', error);
+        this.whitelistedUrls = []; // Empty array, no fallbacks
+        this.isLoadingWhitelistedUrls = false;
+      }
+    });
+}
+  
+  /**
+   * Toggle showing the URL info box with whitelisted URLs
+   */
+  toggleUrlInfoBox(): void {
+    this.showUrlInfoBox = !this.showUrlInfoBox;
+  }
+  
+  /**
+   * Close the URL info box
+   */
+  closeUrlInfoBox(): void {
+    this.showUrlInfoBox = false;
+  }
+  
+  /**
+   * Custom validator to check if the domain is whitelisted
+   */
+  whitelistedDomainValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const url = control.value;
+      
+      if (!url) {
+        return null;
+      }
+      
+      try {
+        // Try to parse the URL
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname;
+        
+        // Check if the hostname matches any of our whitelisted domains
+        const isWhitelisted = this.whitelistedUrls.some(item => {
+          try {
+            const itemUrl = new URL(item.url);
+            return hostname === itemUrl.hostname || 
+                   hostname.endsWith('.' + itemUrl.hostname);
+          } catch (error) {
+            return false;
+          }
+        });
+        
+        return isWhitelisted ? null : { domainNotWhitelisted: true };
+      } catch (error) {
+        // If URL can't be parsed, it's invalid
+        return { invalidUrl: true };
+      }
+    };
+  }
+  
+  /**
+   * Validator to check if the file extension is allowed (.pdf, .txt, .xml)
+   */
+  allowedFileExtensionValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const url = control.value;
+      
+      if (!url || typeof url !== 'string') {
+        return null;
+      }
+      
+      // Only validate URLs that have extensions
+      if (url.includes('.')) {
+        const allowedExtensions = ['.pdf', '.txt', '.xml'];
+        const hasAllowedExtension = allowedExtensions.some(ext => url.toLowerCase().endsWith(ext));
+        
+        // If URL doesn't end with allowed extension, check if it's a domain without a file
+        if (!hasAllowedExtension) {
+          try {
+            const parsedUrl = new URL(url);
+            // If pathname has more segments than just '/' and doesn't end with allowed extension
+            if (parsedUrl.pathname.length > 1 && !parsedUrl.pathname.endsWith('/')) {
+              const pathExt = parsedUrl.pathname.split('.').pop()?.toLowerCase();
+              if (pathExt && !allowedExtensions.includes('.' + pathExt)) {
+                return { invalidFileType: true };
+              }
+            }
+          } catch (error) {
+            return { invalidUrl: true };
+          }
+        }
+      }
+      
+      return null;
+    };
+  }
+  
+  /**
+   * Update validation error message
+   */
+  updateUrlValidationMessage(): void {
+    const urlControl = this.urlForm.get('url');
+    
+    if (!urlControl?.errors) {
+      this.urlValidationErrorMessage = '';
+      return;
+    }
+    
+    if (urlControl.errors['required']) {
+      this.urlValidationErrorMessage = 'URL is required';
+    } else if (urlControl.errors['pattern']) {
+      this.urlValidationErrorMessage = 'URL must start with http:// or https://';
+    } else if (urlControl.errors['domainNotWhitelisted']) {
+      this.urlValidationErrorMessage = 'URL must be from an approved source. Click the info icon to see the list.';
+    } else if (urlControl.errors['invalidFileType']) {
+      this.urlValidationErrorMessage = 'Only documents with .pdf, .txt, or .xml extensions are allowed';
+    }
   }
   
   /**

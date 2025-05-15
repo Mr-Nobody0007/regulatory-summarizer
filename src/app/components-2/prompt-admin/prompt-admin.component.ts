@@ -57,6 +57,7 @@ export class PromptAdminComponent implements OnInit {
   filterType: string = '';
   filterPurpose: string = '';
   isLoading = false;
+  apiIsReadOnly = true; // Flag to indicate API is read-only
   
   @ViewChild('newType') newTypeInput!: ElementRef;
   
@@ -80,10 +81,21 @@ export class PromptAdminComponent implements OnInit {
   loadPrompts(): void {
     this.isLoading = true;
     
-    // Replace with your actual API endpoint
-    this.http.get<Prompt[]>('/api/prompts').subscribe({
-      next: (data) => {
-        this.prompts = data;
+    // Use your actual API endpoint for getting prompts
+    this.http.get<any>('/api/prompts').subscribe({
+      next: (response) => {
+        // Adapt the response based on your API structure
+        // Assuming the API returns an array of prompts directly or within a data property
+        let promptsData = Array.isArray(response) ? response : response.data || [];
+        
+        // Map the API response to our Prompt interface if needed
+        this.prompts = promptsData.map((item: any) => ({
+          promptId: item.promptId || item.id,
+          promptType: item.promptType,
+          promptPurpose: item.promptPurpose,
+          promptText: item.promptText
+        }));
+        
         this.filteredPrompts = [...this.prompts];
         this.extractDocumentTypes();
         this.validatePromptConstraints();
@@ -100,7 +112,7 @@ export class PromptAdminComponent implements OnInit {
     });
   }
 
-  // Load mock data for demonstration
+  // Load mock data for demonstration or if API fails
   loadMockData(): void {
     this.prompts = [
       {
@@ -204,6 +216,14 @@ export class PromptAdminComponent implements OnInit {
     this.editMode = false;
     this.currentPromptId = null;
     this.promptForm.reset();
+    
+    if (this.apiIsReadOnly) {
+      this.snackBar.open(
+        'This is a read-only demo. Add prompt functionality is visible but disabled.',
+        'Dismiss',
+        { duration: 3000 }
+      );
+    }
   }
 
   editPrompt(prompt: Prompt): void {
@@ -214,9 +234,26 @@ export class PromptAdminComponent implements OnInit {
       promptPurpose: prompt.promptPurpose,
       promptText: prompt.promptText
     });
+    
+    if (this.apiIsReadOnly) {
+      this.snackBar.open(
+        'This is a read-only demo. Edit prompt functionality is visible but disabled.',
+        'Dismiss',
+        { duration: 3000 }
+      );
+    }
   }
 
   savePrompt(): void {
+    if (this.apiIsReadOnly) {
+      this.snackBar.open(
+        'This is a read-only demo. Save functionality is not available.',
+        'Dismiss',
+        { duration: 3000 }
+      );
+      return;
+    }
+    
     if (this.promptForm.invalid) {
       return;
     }
@@ -280,9 +317,6 @@ export class PromptAdminComponent implements OnInit {
         error: (err) => {
           console.error('Error updating prompt:', err);
           this.snackBar.open('Failed to update prompt', 'Dismiss', { duration: 3000 });
-          
-          // For demo, update locally
-          this.updatePromptLocally(prompt);
         }
       });
     } else {
@@ -298,40 +332,21 @@ export class PromptAdminComponent implements OnInit {
         error: (err) => {
           console.error('Error creating prompt:', err);
           this.snackBar.open('Failed to create prompt', 'Dismiss', { duration: 3000 });
-          
-          // For demo, create locally
-          this.createPromptLocally(prompt);
         }
       });
     }
   }
 
-  // Demo function to update prompt locally
-  updatePromptLocally(prompt: Prompt): void {
-    const index = this.prompts.findIndex(p => p.promptId === this.currentPromptId);
-    if (index !== -1) {
-      this.prompts[index] = prompt;
-      this.filterPrompts();
-      this.validatePromptConstraints();
-      this.snackBar.open('Prompt updated (demo mode)', 'Dismiss', { duration: 3000 });
-      this.resetForm();
-    }
-  }
-
-  // Demo function to create prompt locally
-  createPromptLocally(prompt: Prompt): void {
-    // Generate a mock ID
-    prompt.promptId = Math.max(...this.prompts.map(p => p.promptId || 0)) + 1;
-    this.prompts.push(prompt);
-    this.filterPrompts();
-    this.extractDocumentTypes();
-    this.validatePromptConstraints();
-    this.snackBar.open('Prompt created (demo mode)', 'Dismiss', { duration: 3000 });
-    this.resetForm();
-  }
-
-  // Updated deletePrompt method with validation for default prompts
   deletePrompt(prompt: Prompt): void {
+    if (this.apiIsReadOnly) {
+      this.snackBar.open(
+        'This is a read-only demo. Delete functionality is not available.',
+        'Dismiss',
+        { duration: 3000 }
+      );
+      return;
+    }
+    
     // First, check if this is the last default prompt for this type
     if (prompt.promptPurpose === 'Default') {
       const defaultPromptsForType = this.prompts.filter(p => 
@@ -381,29 +396,16 @@ export class PromptAdminComponent implements OnInit {
           error: (err) => {
             console.error('Error deleting prompt:', err);
             this.snackBar.open('Failed to delete prompt', 'Dismiss', { duration: 3000 });
-            
-            // For demo, delete locally
-            this.deletePromptLocally(prompt);
           }
         });
       }
     });
   }
 
-  // Demo function to delete prompt locally
-  deletePromptLocally(prompt: Prompt): void {
-    this.prompts = this.prompts.filter(p => p.promptId !== prompt.promptId);
-    this.filterPrompts();
-    this.extractDocumentTypes();
-    this.validatePromptConstraints();
-    this.snackBar.open('Prompt deleted (demo mode)', 'Dismiss', { duration: 3000 });
-  }
-
   resetForm(): void {
     this.promptForm.reset();
     this.editMode = false;
     this.currentPromptId = null;
-    this.validatePromptConstraints();
   }
 
   getPromptTypeClass(type: string): string {

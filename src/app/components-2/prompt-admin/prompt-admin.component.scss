@@ -98,15 +98,18 @@
   }
   
   .prompt-table {
-    width: 100%;
-    
-    th.mat-header-cell, td.mat-cell {
-      padding: 12px 16px;
-    }
-    
     .mat-column-actions {
-      width: 120px;
-      text-align: right;
+      width: 130px;
+      
+      button {
+        &:first-child {
+          color: #304ffe; /* Make view/edit button more prominent */
+        }
+        
+        &[disabled] {
+          color: rgba(0, 0, 0, 0.38);
+        }
+      }
     }
   }
   
@@ -243,3 +246,68 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
+
+  /* Add these styles to prompt-admin.component.scss */
+
+/* Read-only banner */
+.read-only-banner {
+  display: flex;
+  align-items: center;
+  background-color: #fffde7;
+  border: 1px solid #fff59d;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-top: 12px;
+  color: #856404;
+  
+  mat-icon {
+    margin-right: 8px;
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}
+
+/* View-only badge for form */
+.view-only-badge {
+  background-color: #e0e0e0;
+  color: #616161;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 12px;
+}
+
+/* Style for disabled inputs that still look readable */
+::ng-deep {
+  .mat-form-field.mat-form-field-disabled {
+    .mat-form-field-flex {
+      background-color: #f5f5f5;
+    }
+    
+    .mat-form-field-label,
+    .mat-select-value {
+      color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    .mat-form-field-outline {
+      color: rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    textarea, input {
+      color: rgba(0, 0, 0, 0.7) !important;
+    }
+  }
+  
+  /* Make disabled buttons still visible but clearly disabled */
+  .mat-button-disabled {
+    opacity: 0.6;
+    
+    &.mat-icon-button {
+      background-color: transparent !important;
+    }
+  }
+}
+
+/* Improve table appearance for read-only mode */

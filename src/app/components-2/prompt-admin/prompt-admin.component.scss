@@ -1,0 +1,245 @@
+/* src/app/components/prompt-admin/prompt-admin.component.scss */
+.admin-container {
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  
+  .admin-header {
+    margin-bottom: 24px;
+    
+    h1 {
+      margin-bottom: 8px;
+      color: rgba(0, 0, 0, 0.87);
+      font-size: 24px;
+    }
+    
+    .subtitle {
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 16px;
+    }
+  }
+  
+  // Loading state styling
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    
+    p {
+      margin-top: 16px;
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 16px;
+    }
+  }
+  
+  .filter-card {
+    margin-bottom: 24px;
+    
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      
+      mat-form-field {
+        flex: 1;
+        min-width: 200px;
+        max-width: 300px;
+      }
+    }
+  }
+  
+  .list-and-form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+    
+    @media (max-width: 1200px) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .prompts-list-card, .prompt-form-card {
+    height: fit-content;
+    
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      
+      mat-card-title {
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  .no-prompts-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    color: rgba(0, 0, 0, 0.5);
+    
+    mat-icon {
+      font-size: 48px;
+      height: 48px;
+      width: 48px;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      font-size: 16px;
+    }
+  }
+  
+  .prompt-table {
+    width: 100%;
+    
+    th.mat-header-cell, td.mat-cell {
+      padding: 12px 16px;
+    }
+    
+    .mat-column-actions {
+      width: 120px;
+      text-align: right;
+    }
+  }
+  
+  .badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  // Document Type colors
+  .type-notice {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+  }
+  
+  .type-rule {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+  }
+  
+  .type-proposed {
+    background-color: #fff8e1;
+    color: #ff8f00;
+  }
+  
+  .type-nodoc {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+  }
+  
+  .type-default {
+    background-color: #eeeeee;
+    color: #212121;
+  }
+  
+  // Purpose colors
+  .purpose-default {
+    background-color: #e8eaf6;
+    color: #304ffe;
+  }
+  
+  .purpose-suggestion {
+    background-color: #e0f7fa;
+    color: #006064;
+  }
+  
+  .purpose-nodoc {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+  }
+  
+  .form-field-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .form-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+  
+  // Help card styling
+  .help-card {
+    margin-top: 24px;
+    
+    mat-card-header {
+      margin-bottom: 16px;
+      
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+    
+    .help-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      
+      .help-item {
+        h3 {
+          margin-top: 0;
+          margin-bottom: 12px;
+          color: rgba(0, 0, 0, 0.87);
+          font-size: 16px;
+          font-weight: 500;
+        }
+        
+        ul {
+          margin: 0;
+          padding-left: 24px;
+          
+          li {
+            margin-bottom: 8px;
+            color: rgba(0, 0, 0, 0.7);
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+            
+            strong {
+              color: rgba(0, 0, 0, 0.87);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Custom scrollbar styling
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }

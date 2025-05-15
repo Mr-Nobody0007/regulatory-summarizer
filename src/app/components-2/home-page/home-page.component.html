@@ -6,78 +6,69 @@
         <div class="sparkle-icon">
           <mat-icon>auto_awesome</mat-icon>
         </div>
-        <h1 class="card-title">Regulatory AI document assistant</h1>
+        <h1 class="card-title">Select a regulatory document to summarize and explore with AI</h1>
       </div>
-      
+
       <!-- Input Method Selection Tabs -->
       <div class="input-selection-tabs">
         <div class="tab-buttons">
-          <button 
-            mat-stroked-button 
-            [class.active]="selectedInputMethod === 'search'"
-            (click)="selectInputMethod('search')">
-            <mat-icon>search</mat-icon>
+          <button mat-stroked-button [class.active]="selectedInputMethod === 'search'" (click)="selectInputMethod('search')">
+            <!-- <mat-icon>search</mat-icon> -->
             Search documents
           </button>
-          <button 
-            mat-stroked-button 
-            [class.active]="selectedInputMethod === 'url'"
-            (click)="selectInputMethod('url')">
-            <mat-icon>link</mat-icon>
-            URL input
+          <button mat-stroked-button [class.active]="selectedInputMethod === 'url'" (click)="selectInputMethod('url')">
+            <!-- <mat-icon>link</mat-icon> -->
+            Link to document
           </button>
         </div>
       </div>
 
       <!-- Document Search UI -->
       <div *ngIf="selectedInputMethod === 'search'" class="search-section">
-        <h3>Search for regulatory documents</h3>
-        
         <!-- Search container with keyboard navigation -->
         <div class="search-container" #searchContainer>
           <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Enter a Federal Registry Number or search for a document by keyword</mat-label>
-            <input 
-              matInput 
-              [formControl]="searchControl" 
-              type="text" 
+            <input
+              matInput
+              [formControl]="searchControl"
+              type="text"
               placeholder="Search for a document"
               autocomplete="off"
               (focus)="showSearchResults = true"
-              (keydown)="handleSearchKeydown($event)">
-            <mat-icon matPrefix>search</mat-icon>
+              (keydown)="handleSearchKeydown($event)"
+            />
+            <!-- <mat-icon matPrefix>search</mat-icon> -->
             <mat-spinner *ngIf="isLoading" matSuffix diameter="20"></mat-spinner>
-            <button 
-              *ngIf="searchControl.value && !isLoading" 
-              matSuffix 
-              mat-icon-button 
-              aria-label="Clear" 
-              (click)="clearSearch()">
+            <button *ngIf="searchControl.value && !isLoading" 
+                    matSuffix mat-icon-button aria-label="Clear" (click)="clearSearch()">
               <mat-icon>close</mat-icon>
             </button>
           </mat-form-field>
-
+          <div class="search-hint">
+            Enter a Federal Register Number or search for a document by keyword</div>
+          
           <!-- Google-style Dropdown Results with keyboard accessibility -->
-          <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value" class="search-dropdown">
-            <div 
-              *ngFor="let result of searchResults; let i = index" 
+          <div *ngIf="showSearchResults && searchResults.length > 0 && searchControl.value"
+               class="search-dropdown">
+            <div
+              *ngFor="let result of searchResults; let i = index"
               class="search-result-item"
               [class.focused]="focusedResultIndex === i"
               role="option"
               [attr.aria-selected]="focusedResultIndex === i"
               [tabindex]="focusedResultIndex === i ? 0 : -1"
               (click)="selectDocument(result)"
-              (keydown.enter)="selectDocument(result)">
+              (keydown.enter)="selectDocument(result)"
+            >
               <mat-icon>description</mat-icon>
               <div class="result-details">
-                <div class="result-title">({{ result.id }}) {{ result.title }}</div>
+                <div class="result-title">{{ result.id }} {{ result.title }}</div>
                 <div class="result-meta">
-                  {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}  
-                </div>
+                  {{ result.documentType }} • {{ result.agencyName }} • {{ result.publicationDate }}</div>
               </div>
             </div>
           </div>
-
+          
           <!-- No Results Message (appears in dropdown) -->
           <div *ngIf="showSearchResults && searchControl.value && noResults && !isLoading" class="search-dropdown no-results-dropdown">
             <div class="no-results-message">

@@ -1,5 +1,10 @@
 .app-toolbar {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .toolbar-container {
@@ -20,20 +25,11 @@
 .logo {
   height: 32px;
   margin-right: 16px;
-  
-  @media (min-width: 1600px) {
-    height: 36px;
-    margin-right: 20px;
-  }
 }
 
 .title {
   font-weight: normal;
   font-size: 18px;
-  
-  @media (min-width: 1600px) {
-    font-size: 20px;
-  }
 }
 
 .toolbar-right {
@@ -41,20 +37,24 @@
   align-items: center;
 }
 
+.nav-button {
+  margin-right: 8px;
+  
+  &.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  mat-icon {
+    margin-right: 4px;
+  }
+}
+
 .settings-button {
   margin-right: 16px;
-  
-  @media (min-width: 1600px) {
-    margin-right: 20px;
-  }
 }
 
 .user-button {
   font-size: 14px;
-  
-  @media (min-width: 1600px) {
-    font-size: 16px;
-  }
   
   mat-icon {
     margin-right: 4px;
@@ -67,6 +67,7 @@
 }
 
 .content {
-  min-height: calc(100vh - 64px);
+  min-height: 100vh;
   background-color: #f5f5f5;
+  padding-top: 64px; /* Height of the toolbar */
 }

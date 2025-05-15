@@ -5,8 +5,16 @@
       <span class="title">Regulatory Summarizer</span>
     </div>
     <div class="toolbar-right">
-      <button mat-icon-button class="settings-button" (click)="openAIParametersDialog()" matTooltip="AI Parameters">
+      <button mat-button class="nav-button" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <mat-icon>home</mat-icon>
+        <span>Home</span>
+      </button>
+      <button mat-button class="nav-button" routerLink="/admin/prompts" routerLinkActive="active">
         <mat-icon>settings</mat-icon>
+        <span>Prompt Admin</span>
+      </button>
+      <button mat-icon-button class="settings-button" matTooltip="AI Parameters">
+        <mat-icon>tune</mat-icon>
       </button>
       <button mat-button class="user-button">
         <mat-icon>account_circle</mat-icon>
